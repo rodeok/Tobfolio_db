@@ -7,4 +7,5 @@ const router = (0, express_1.Router)();
 router.use(authMiddleware_js_1.authMiddleware);
 router.put('/profile', userController_js_1.updateProfile);
 router.put('/password', userController_js_1.updatePassword);
+router.delete('/delete', userController_js_1.deleteAccount);
 exports.default = router;

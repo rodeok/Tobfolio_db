@@ -12,6 +12,12 @@ const propertyRoutes_js_1 = __importDefault(require("./routes/propertyRoutes.js"
 const tenantRoutes_js_1 = __importDefault(require("./routes/tenantRoutes.js"));
 const maintenanceRoutes_js_1 = __importDefault(require("./routes/maintenanceRoutes.js"));
 const userRoutes_js_1 = __importDefault(require("./routes/userRoutes.js"));
+const dashboardRoutes_js_1 = __importDefault(require("./routes/dashboardRoutes.js"));
+const exchangeRateRoutes_js_1 = __importDefault(require("./routes/exchangeRateRoutes.js"));
+const notificationRoutes_js_1 = __importDefault(require("./routes/notificationRoutes.js"));
+const adminRoutes_js_1 = __importDefault(require("./routes/adminRoutes.js"));
+const uploadRoutes_js_1 = __importDefault(require("./routes/uploadRoutes.js"));
+const cronRoutes_js_1 = __importDefault(require("./routes/cronRoutes.js"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 5000;
@@ -26,6 +32,12 @@ app.use('/api/properties', propertyRoutes_js_1.default);
 app.use('/api/tenants', tenantRoutes_js_1.default);
 app.use('/api/maintenance', maintenanceRoutes_js_1.default);
 app.use('/api/user', userRoutes_js_1.default);
+app.use('/api/dashboard', dashboardRoutes_js_1.default);
+app.use('/api/exchange-rates', exchangeRateRoutes_js_1.default);
+app.use('/api/notifications', notificationRoutes_js_1.default);
+app.use('/api/admin', adminRoutes_js_1.default);
+app.use('/api/upload', uploadRoutes_js_1.default);
+app.use('/api/cron', cronRoutes_js_1.default);
 // Basic Route
 app.get('/', (req, res) => {
     res.send('Tobfolio API is running...');

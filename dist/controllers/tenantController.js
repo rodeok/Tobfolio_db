@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteTenant = exports.updateTenant = exports.getTenant = exports.createTenant = exports.getTenants = void 0;
-const Tenant_js_1 = __importDefault(require("../models/Tenant.js"));
+const Tenant_js_1 = __importDefault(require("@/models/Tenant.js"));
 const getTenants = async (req, res) => {
     try {
         const tenants = await Tenant_js_1.default.find({ landlordId: req.user?.userId })

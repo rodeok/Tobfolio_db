@@ -3,9 +3,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updatePassword = exports.updateProfile = void 0;
+exports.deleteAccount = exports.updatePassword = exports.updateProfile = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
-const User_js_1 = __importDefault(require("../models/User.js"));
+const User_js_1 = __importDefault(require("@/models/User.js"));
 const updateProfile = async (req, res) => {
     try {
         const { name, phone, about, email } = req.body;
@@ -62,3 +62,16 @@ const updatePassword = async (req, res) => {
     }
 };
 exports.updatePassword = updatePassword;
+const deleteAccount = async (req, res) => {
+    try {
+        const user = await User_js_1.default.findByIdAndDelete(req.user?.userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.json({ message: 'Account deleted successfully' });
+    }
+    catch (error) {
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+exports.deleteAccount = deleteAccount;
