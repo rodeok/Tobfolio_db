@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getExchangeRates = void 0;
-const ExchangeRate_js_1 = __importDefault(require("@/models/ExchangeRate.js"));
+const ExchangeRate_js_1 = __importDefault(require("../models/ExchangeRate.js"));
 const getExchangeRates = async (req, res) => {
     try {
         // Check for cached rates (valid for 12 hours)

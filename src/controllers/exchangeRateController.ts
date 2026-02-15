@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import ExchangeRate from '@/models/ExchangeRate.js';
+import ExchangeRate from '../models/ExchangeRate.js';
 
 export const getExchangeRates = async (req: Request, res: Response) => {
     try {
