@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendNotification = void 0;
-const notifications_js_1 = require("@/utils/notifications.js");
+const notifications_js_1 = require("../utils/notifications.js");
 const sendNotification = async (req, res) => {
     try {
         const { to, subject, html, body, type = "email" } = req.body;

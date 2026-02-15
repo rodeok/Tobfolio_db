@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import cloudinary from '@/config/cloudinary.js';
+import cloudinary from '../config/cloudinary.js';
 
 interface MulterRequest extends Request {
     file?: Express.Multer.File;

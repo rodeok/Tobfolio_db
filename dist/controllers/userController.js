@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteAccount = exports.updatePassword = exports.updateProfile = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
-const User_js_1 = __importDefault(require("@/models/User.js"));
+const User_js_1 = __importDefault(require("../models/User.js"));
 const updateProfile = async (req, res) => {
     try {
         const { name, phone, about, email } = req.body;

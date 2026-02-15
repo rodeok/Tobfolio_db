@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import bcrypt from 'bcryptjs';
-import User from '@/models/User.js';
+import User from '../models/User.js';
 import { Request } from 'express';
 
 interface AuthRequest extends Request {

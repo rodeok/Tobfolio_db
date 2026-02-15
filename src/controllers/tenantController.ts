@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import Tenant from '@/models/Tenant.js';
+import Tenant from '../models/Tenant.js';
 import { Request } from 'express';
 
 interface AuthRequest extends Request {

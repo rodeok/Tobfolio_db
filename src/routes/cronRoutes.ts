@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { checkRentals } from '@/controllers/cronController.js';
+import { checkRentals } from '../controllers/cronController.js';
 
 const router = Router();
 

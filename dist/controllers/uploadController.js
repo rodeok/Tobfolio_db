@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.uploadFile = void 0;
-const cloudinary_js_1 = __importDefault(require("@/config/cloudinary.js"));
+const cloudinary_js_1 = __importDefault(require("../config/cloudinary.js"));
 const uploadFile = async (req, res) => {
     try {
         if (!req.file) {

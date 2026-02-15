@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import User from '@/models/User.js';
-import { signupSchema, loginSchema } from '@/utils/validations.js';
-import { sendEmail } from '@/utils/notifications.js';
+import User from '../models/User.js';
+import { signupSchema, loginSchema } from '../utils/validations.js';
+import { sendEmail } from '../utils/notifications.js';
 
 export const register = async (req: Request, res: Response) => {
     try {

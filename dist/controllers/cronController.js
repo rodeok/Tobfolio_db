@@ -4,8 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.checkRentals = void 0;
-const Tenant_js_1 = __importDefault(require("@/models/Tenant.js"));
-const notifications_js_1 = require("@/utils/notifications.js");
+const Tenant_js_1 = __importDefault(require("../models/Tenant.js"));
+const notifications_js_1 = require("../utils/notifications.js");
 const checkRentals = async (req, res) => {
     try {
         const today = new Date();

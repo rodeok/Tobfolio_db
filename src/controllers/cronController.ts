@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import Tenant from '@/models/Tenant.js';
-import { sendEmail, sendSMS } from '@/utils/notifications.js';
+import Tenant from '../models/Tenant.js';
+import { sendEmail, sendSMS } from '../utils/notifications.js';
 
 export const checkRentals = async (req: Request, res: Response) => {
     try {

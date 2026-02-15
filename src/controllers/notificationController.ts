@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { sendEmail, sendSMS } from '@/utils/notifications.js';
+import { sendEmail, sendSMS } from '../utils/notifications.js';
 
 export const sendNotification = async (req: Request, res: Response) => {
     try {

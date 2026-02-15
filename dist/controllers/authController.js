@@ -6,9 +6,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.resetPassword = exports.forgotPassword = exports.login = exports.register = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const User_js_1 = __importDefault(require("@/models/User.js"));
-const validations_js_1 = require("@/utils/validations.js");
-const notifications_js_1 = require("@/utils/notifications.js");
+const User_js_1 = __importDefault(require("../models/User.js"));
+const validations_js_1 = require("../utils/validations.js");
+const notifications_js_1 = require("../utils/notifications.js");
 const register = async (req, res) => {
     try {
         const validatedData = validations_js_1.signupSchema.parse(req.body);

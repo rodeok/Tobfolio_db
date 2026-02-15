@@ -4,10 +4,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getDashboardData = void 0;
-const Property_js_1 = __importDefault(require("@/models/Property.js"));
-const Tenant_js_1 = __importDefault(require("@/models/Tenant.js"));
-const Maintenance_js_1 = __importDefault(require("@/models/Maintenance.js"));
-const User_js_1 = __importDefault(require("@/models/User.js"));
+const Property_js_1 = __importDefault(require("../models/Property.js"));
+const Tenant_js_1 = __importDefault(require("../models/Tenant.js"));
+const Maintenance_js_1 = __importDefault(require("../models/Maintenance.js"));
+const User_js_1 = __importDefault(require("../models/User.js"));
 const getDashboardData = async (req, res) => {
     try {
         const userId = req.user?.userId;

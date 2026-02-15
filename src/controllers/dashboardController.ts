@@ -1,8 +1,8 @@
 import { Response } from 'express';
-import Property from '@/models/Property.js';
-import Tenant from '@/models/Tenant.js';
-import Maintenance from '@/models/Maintenance.js';
-import User from '@/models/User.js';
+import Property from '../models/Property.js';
+import Tenant from '../models/Tenant.js';
+import Maintenance from '../models/Maintenance.js';
+import User from '../models/User.js';
 import { Request } from 'express';
 
 interface AuthRequest extends Request {

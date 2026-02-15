@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteUser = exports.toggleUserBan = exports.getAllUsers = exports.adminLogin = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const User_js_1 = __importDefault(require("@/models/User.js"));
+const User_js_1 = __importDefault(require("../models/User.js"));
 const adminLogin = async (req, res) => {
     try {
         const { username, password } = req.body;
