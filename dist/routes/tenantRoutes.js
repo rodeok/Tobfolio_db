@@ -1,0 +1,13 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const tenantController_js_1 = require("../controllers/tenantController.js");
+const authMiddleware_js_1 = require("../middleware/authMiddleware.js");
+const router = (0, express_1.Router)();
+router.use(authMiddleware_js_1.authMiddleware);
+router.get('/', tenantController_js_1.getTenants);
+router.post('/', tenantController_js_1.createTenant);
+router.get('/:id', tenantController_js_1.getTenant);
+router.put('/:id', tenantController_js_1.updateTenant);
+router.delete('/:id', tenantController_js_1.deleteTenant);
+exports.default = router;
