@@ -1,9 +1,58 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { OAuth2Client } from 'google-auth-library';
 import User from '../models/User.js';
 import { signupSchema, loginSchema } from '../utils/validations.js';
 import { sendEmail } from '../utils/notifications.js';
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+export const googleLogin = async (req: Request, res: Response) => {
+    try {
+        const { token } = req.body;
+
+        // Fetch user info using access token
+        const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        if (!response.ok) {
+            return res.status(400).json({ message: 'Invalid Google token' });
+        }
+
+        const payload = await response.json();
+
+        const { email, name, sub: googleId } = payload;
+
+        let user = await User.findOne({ email });
+
+        if (!user) {
+            // Create new user if not exists
+            user = new User({
+                name,
+                email,
+                password: await bcrypt.hash(Math.random().toString(36).slice(-8), 12), // Random password
+                googleId,
+                isVerified: true, // Google emails are verified
+            });
+            await user.save();
+        }
+
+        const jwtToken = jwt.sign(
+            { userId: user._id },
+            process.env.JWT_SECRET || 'secret',
+            { expiresIn: '1h' }
+        );
+
+        res.json({ token: jwtToken, user: { id: user._id, name: user.name, email: user.email } });
+    } catch (error) {
+        console.error('Google login error:', error);
+        res.status(500).json({ message: 'Google login failed' });
+    }
+};
 
 export const register = async (req: Request, res: Response) => {
     try {

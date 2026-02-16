@@ -3,12 +3,49 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resetPassword = exports.forgotPassword = exports.login = exports.register = void 0;
+exports.resetPassword = exports.forgotPassword = exports.login = exports.register = exports.googleLogin = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const google_auth_library_1 = require("google-auth-library");
 const User_js_1 = __importDefault(require("../models/User.js"));
 const validations_js_1 = require("../utils/validations.js");
 const notifications_js_1 = require("../utils/notifications.js");
+const client = new google_auth_library_1.OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const googleLogin = async (req, res) => {
+    try {
+        const { token } = req.body;
+        // Fetch user info using access token
+        const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        if (!response.ok) {
+            return res.status(400).json({ message: 'Invalid Google token' });
+        }
+        const payload = await response.json();
+        const { email, name, sub: googleId } = payload;
+        let user = await User_js_1.default.findOne({ email });
+        if (!user) {
+            // Create new user if not exists
+            user = new User_js_1.default({
+                name,
+                email,
+                password: await bcryptjs_1.default.hash(Math.random().toString(36).slice(-8), 12), // Random password
+                googleId,
+                isVerified: true, // Google emails are verified
+            });
+            await user.save();
+        }
+        const jwtToken = jsonwebtoken_1.default.sign({ userId: user._id }, process.env.JWT_SECRET || 'secret', { expiresIn: '1h' });
+        res.json({ token: jwtToken, user: { id: user._id, name: user.name, email: user.email } });
+    }
+    catch (error) {
+        console.error('Google login error:', error);
+        res.status(500).json({ message: 'Google login failed' });
+    }
+};
+exports.googleLogin = googleLogin;
 const register = async (req, res) => {
     try {
         const validatedData = validations_js_1.signupSchema.parse(req.body);
