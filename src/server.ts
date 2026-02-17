@@ -17,6 +17,20 @@ import { generalLimiter, authLimiter } from './middleware/rateLimiter.js';
 
 dotenv.config();
 
+// Suppress DEP0170 warning to prevent leaking MongoDB connection string in logs
+const originalEmit = process.emit;
+(process as any).emit = function (name: any, data: any, ...args: any[]) {
+    if (
+        name === 'warning' &&
+        typeof data === 'object' &&
+        data.name === 'DeprecationWarning' &&
+        data.code === 'DEP0170'
+    ) {
+        return false;
+    }
+    return originalEmit.apply(process, [name, data, ...args] as any);
+};
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
