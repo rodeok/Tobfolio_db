@@ -20,6 +20,17 @@ const uploadRoutes_js_1 = __importDefault(require("./routes/uploadRoutes.js"));
 const cronRoutes_js_1 = __importDefault(require("./routes/cronRoutes.js"));
 const rateLimiter_js_1 = require("./middleware/rateLimiter.js");
 dotenv_1.default.config();
+// Suppress DEP0170 warning to prevent leaking MongoDB connection string in logs
+const originalEmit = process.emit;
+process.emit = function (name, data, ...args) {
+    if (name === 'warning' &&
+        typeof data === 'object' &&
+        data.name === 'DeprecationWarning' &&
+        data.code === 'DEP0170') {
+        return false;
+    }
+    return originalEmit.apply(process, [name, data, ...args]);
+};
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 5000;
 // Connect to Database
@@ -29,25 +40,35 @@ app.set('trust proxy', 1); // Trust first proxy
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 // Rate Limiting
-app.use(rateLimiter_js_1.generalLimiter);
-app.use('/api/auth', rateLimiter_js_1.authLimiter);
+// app.use(generalLimiter); // Removed global limiter to avoid double counting
+// app.use('/api/v1/auth', authLimiter); // Moved below
 // Routes
-app.use('/api/auth', authRoutes_js_1.default);
-app.use('/api/properties', propertyRoutes_js_1.default);
-app.use('/api/tenants', tenantRoutes_js_1.default);
-app.use('/api/maintenance', maintenanceRoutes_js_1.default);
-app.use('/api/user', userRoutes_js_1.default);
-app.use('/api/dashboard', dashboardRoutes_js_1.default);
-app.use('/api/exchange-rates', exchangeRateRoutes_js_1.default);
-app.use('/api/notifications', notificationRoutes_js_1.default);
-app.use('/api/admin', adminRoutes_js_1.default);
-app.use('/api/upload', uploadRoutes_js_1.default);
-app.use('/api/cron', cronRoutes_js_1.default);
+app.use('/api/v1/auth', rateLimiter_js_1.authLimiter, authRoutes_js_1.default); // Apply authLimiter only to auth routes
+app.use('/api/v1/properties', rateLimiter_js_1.generalLimiter, propertyRoutes_js_1.default);
+app.use('/api/v1/tenants', rateLimiter_js_1.generalLimiter, tenantRoutes_js_1.default);
+app.use('/api/v1/maintenance', rateLimiter_js_1.generalLimiter, maintenanceRoutes_js_1.default);
+app.use('/api/v1/user', rateLimiter_js_1.generalLimiter, userRoutes_js_1.default);
+app.use('/api/v1/dashboard', rateLimiter_js_1.generalLimiter, dashboardRoutes_js_1.default);
+app.use('/api/v1/exchange-rates', rateLimiter_js_1.generalLimiter, exchangeRateRoutes_js_1.default);
+app.use('/api/v1/notifications', rateLimiter_js_1.generalLimiter, notificationRoutes_js_1.default);
+app.use('/api/v1/admin', rateLimiter_js_1.generalLimiter, adminRoutes_js_1.default);
+app.use('/api/v1/upload', rateLimiter_js_1.generalLimiter, uploadRoutes_js_1.default);
+app.use('/api/v1/cron', rateLimiter_js_1.generalLimiter, cronRoutes_js_1.default);
 // Basic Route
 app.get('/', (req, res) => {
     res.send('Tobfolio API is running...');
 });
 // Start Server
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+const startServer = async () => {
+    try {
+        await (0, db_js_1.default)();
+        app.listen(PORT, () => {
+            console.log(`Server is running on port ${PORT}`);
+        });
+    }
+    catch (error) {
+        console.error('Failed to connect to database:', error);
+        process.exit(1);
+    }
+};
+startServer();

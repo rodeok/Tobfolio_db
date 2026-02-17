@@ -6,8 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.authLimiter = exports.generalLimiter = void 0;
 const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 const rate_limit_mongo_1 = __importDefault(require("rate-limit-mongo"));
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/tobfolio';
-// General limiter for most routes
+const MONGODB_URI = process.env.MONGODB_URI || '';
+// General limiter for all routes
 exports.generalLimiter = (0, express_rate_limit_1.default)({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 100, // Limit each IP to 100 requests per windowMs
