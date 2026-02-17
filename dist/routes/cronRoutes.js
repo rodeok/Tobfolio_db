@@ -3,6 +3,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const cronController_js_1 = require("../controllers/cronController.js");
 const router = (0, express_1.Router)();
-// In a real scenario, this would be protected by a secret key or fixed dynamic route
-router.get('/check-rentals', cronController_js_1.checkRentals);
+// Middleware to verify the cron secret
+const verifyCronSecret = (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ success: false, message: 'Unauthorized: Missing or invalid token' });
+    }
+    const token = authHeader.split(' ')[1];
+    if (token !== process.env.CRON_SECRET) {
+        return res.status(401).json({ success: false, message: 'Unauthorized: Invalid token' });
+    }
+    next();
+};
+router.get('/check-rentals', verifyCronSecret, cronController_js_1.checkRentals);
 exports.default = router;

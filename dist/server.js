@@ -18,14 +18,19 @@ const notificationRoutes_js_1 = __importDefault(require("./routes/notificationRo
 const adminRoutes_js_1 = __importDefault(require("./routes/adminRoutes.js"));
 const uploadRoutes_js_1 = __importDefault(require("./routes/uploadRoutes.js"));
 const cronRoutes_js_1 = __importDefault(require("./routes/cronRoutes.js"));
+const rateLimiter_js_1 = require("./middleware/rateLimiter.js");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 5000;
 // Connect to Database
 (0, db_js_1.default)();
 // Middleware
+app.set('trust proxy', 1); // Trust first proxy
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
+// Rate Limiting
+app.use(rateLimiter_js_1.generalLimiter);
+app.use('/api/auth', rateLimiter_js_1.authLimiter);
 // Routes
 app.use('/api/auth', authRoutes_js_1.default);
 app.use('/api/properties', propertyRoutes_js_1.default);
