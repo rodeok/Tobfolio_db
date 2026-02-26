@@ -75,9 +75,9 @@ export const getDashboardData = async (req: AuthRequest, res: Response) => {
         const currentMonthNetIncome = currentMonthRent - currentMonthMaintenance;
         const lastMonthNetIncome = lastMonthRent - lastMonthMaintenance;
 
-        const incomeGrowth = lastMonthNetIncome === 0
-            ? (currentMonthNetIncome > 0 ? 100 : 0)
-            : ((currentMonthNetIncome - lastMonthNetIncome) / lastMonthNetIncome) * 100;
+        const incomeGrowth = lastMonthRent === 0
+            ? (currentMonthRent > 0 ? 100 : 0)
+            : ((currentMonthRent - lastMonthRent) / lastMonthRent) * 100;
 
         const netBalance = currentMonthNetIncome;
 
@@ -100,7 +100,7 @@ export const getDashboardData = async (req: AuthRequest, res: Response) => {
 
         res.json({
             userName: user?.name || 'User',
-            totalIncome: currentMonthNetIncome,
+            totalIncome: currentMonthRent,
             incomeGrowth: Math.round(incomeGrowth),
             totalRentals,
             netBalance,

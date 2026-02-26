@@ -34,7 +34,7 @@ process.emit = function (name, data, ...args) {
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 5000;
 // Connect to Database
-(0, db_js_1.default)();
+// connectDB();
 // Middleware
 app.set('trust proxy', 1); // Trust first proxy
 app.use((0, cors_1.default)());

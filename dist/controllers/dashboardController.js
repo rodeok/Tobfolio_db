@@ -60,9 +60,9 @@ const getDashboardData = async (req, res) => {
         // Calculate Net Income
         const currentMonthNetIncome = currentMonthRent - currentMonthMaintenance;
         const lastMonthNetIncome = lastMonthRent - lastMonthMaintenance;
-        const incomeGrowth = lastMonthNetIncome === 0
-            ? (currentMonthNetIncome > 0 ? 100 : 0)
-            : ((currentMonthNetIncome - lastMonthNetIncome) / lastMonthNetIncome) * 100;
+        const incomeGrowth = lastMonthRent === 0
+            ? (currentMonthRent > 0 ? 100 : 0)
+            : ((currentMonthRent - lastMonthRent) / lastMonthRent) * 100;
         const netBalance = currentMonthNetIncome;
         // Chart Data (Last 12 months property value)
         const chartData = [];
@@ -80,7 +80,7 @@ const getDashboardData = async (req, res) => {
         }
         res.json({
             userName: user?.name || 'User',
-            totalIncome: currentMonthNetIncome,
+            totalIncome: currentMonthRent,
             incomeGrowth: Math.round(incomeGrowth),
             totalRentals,
             netBalance,
