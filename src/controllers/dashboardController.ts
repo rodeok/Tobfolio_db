@@ -56,30 +56,31 @@ export const getDashboardData = async (req: AuthRequest, res: Response) => {
             .filter(t => isTenantActiveInMonth(t, lastMonth, lastMonthYear))
             .reduce((sum, t) => sum + (t.rentAmount || 0), 0);
 
-        // Calculate Maintenance Costs
-        const currentMonthMaintenance = maintenance
-            .filter(m => {
-                const mDate = new Date(m.date);
-                return mDate.getMonth() === currentMonth && mDate.getFullYear() === currentYear;
-            })
-            .reduce((sum, m) => sum + (m.cost || 0), 0);
+        // Helper to calculate total rent so far for a tenant
+        const calculateTotalRentSoFar = (tenant: any) => {
+            const start = new Date(tenant.rentStart);
+            const end = new Date(tenant.rentEnd);
+            const today = new Date();
+            
+            const effectiveEnd = today < end ? today : end;
+            if (effectiveEnd < start) return 0;
+            
+            const months = (effectiveEnd.getFullYear() - start.getFullYear()) * 12 + (effectiveEnd.getMonth() - start.getMonth()) + 1;
+            return Math.max(0, months) * (tenant.rentAmount || 0);
+        };
 
-        const lastMonthMaintenance = maintenance
-            .filter(m => {
-                const mDate = new Date(m.date);
-                return mDate.getMonth() === lastMonth && mDate.getFullYear() === lastMonthYear;
-            })
-            .reduce((sum, m) => sum + (m.cost || 0), 0);
+        const totalLifetimeIncome = tenants.reduce((sum, t) => sum + calculateTotalRentSoFar(t), 0);
 
-        // Calculate Net Income
-        const currentMonthNetIncome = currentMonthRent - currentMonthMaintenance;
-        const lastMonthNetIncome = lastMonthRent - lastMonthMaintenance;
+        // Calculate Maintenance Costs (Repairs + Property Renovations)
+        const totalMaintenanceCost = maintenance.reduce((sum, m) => sum + (m.cost || 0), 0) + 
+                                     properties.reduce((sum, p) => sum + (p.totalRenovationCost || 0), 0);
+
+        // Calculate Net Income (Profit - Cumulative)
+        const netBalance = totalLifetimeIncome - totalMaintenanceCost;
 
         const incomeGrowth = lastMonthRent === 0
             ? (currentMonthRent > 0 ? 100 : 0)
             : ((currentMonthRent - lastMonthRent) / lastMonthRent) * 100;
-
-        const netBalance = currentMonthNetIncome;
 
         // Chart Data (Last 12 months property value)
         const chartData = [];
@@ -100,11 +101,11 @@ export const getDashboardData = async (req: AuthRequest, res: Response) => {
 
         res.json({
             userName: user?.name || 'User',
-            totalIncome: currentMonthRent,
+            totalIncome: totalLifetimeIncome,
             incomeGrowth: Math.round(incomeGrowth),
             totalRentals,
             netBalance,
-            maintenance: currentMonthMaintenance,
+            maintenance: totalMaintenanceCost,
             chartData,
             lastUpdated: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
         });

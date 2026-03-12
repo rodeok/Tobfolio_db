@@ -45,6 +45,12 @@ app.set('trust proxy', 1); // Trust first proxy
 app.use(cors());
 app.use(express.json());
 
+// Global logger for Render debugging
+app.use((req, res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    next();
+});
+
 // Diagnostic route
 app.get('/swagger-health', (req, res) => {
     res.json({
@@ -86,16 +92,32 @@ app.get('/', (req, res) => {
     res.send('Tobfolio API is running...');
 });
 
+// Catch-all 404 for debugging
+app.use((req, res) => {
+    console.log(`[${new Date().toISOString()}] 404 - Unmatched Request: ${req.method} ${req.url}`);
+    res.status(404).json({
+        success: false,
+        message: `Route ${req.method} ${req.url} not found on this server`,
+        timestamp: new Date().toISOString()
+    });
+});
+
 // Start Server
 const startServer = async () => {
+    // Start listening immediately so health checks pass on Render
+    app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+        console.log(`Environment: ${process.env.NODE_ENV}`);
+        console.log(`Try health check at: /swagger-health`);
+    });
+
     try {
+        console.log('Connecting to database...');
         await connectDB();
-        app.listen(PORT, () => {
-            console.log(`Server is running on port ${PORT}`);
-        });
+        console.log('Database connected successfully');
     } catch (error) {
         console.error('Failed to connect to database:', error);
-        process.exit(1);
+        // Don't exit here, allows diagnostic routes to work even if DB is down
     }
 };
 
