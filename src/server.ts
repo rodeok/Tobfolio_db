@@ -63,7 +63,11 @@ app.use('/api/v1/upload', generalLimiter, uploadRoutes);
 app.use('/api/v1/cron', generalLimiter, cronRoutes);
 
 // Swagger UI Documentation
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+console.log('Registering Swagger UI at /api-docs');
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+    explorer: true,
+    customSiteTitle: "Tobfolio API Docs"
+}));
 
 
 // Basic Route

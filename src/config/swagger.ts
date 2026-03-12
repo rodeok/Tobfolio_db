@@ -1,4 +1,7 @@
 import swaggerJSDoc from 'swagger-jsdoc';
+import path from 'path';
+
+const isProd = process.env.NODE_ENV === 'production';
 
 const options: swaggerJSDoc.Options = {
   definition: {
@@ -10,13 +13,9 @@ const options: swaggerJSDoc.Options = {
     },
     servers: [
       {
-        url: 'http://localhost:5000',
-        description: 'Development server',
+        url: isProd ? 'https://tobfolio-db-1.onrender.com' : 'http://localhost:5000',
+        description: isProd ? 'Production server' : 'Development server',
       },
-      {
-        url: 'https://tobfolio-db-1.onrender.com',
-        description: 'Production server',
-      }
     ],
     components: {
       securitySchemes: {
@@ -33,7 +32,13 @@ const options: swaggerJSDoc.Options = {
       },
     ],
   },
-  apis: ['./src/routes/*.ts'], // Path to the API docs
+  // Use absolute paths to ensure files are found regardless of CWD
+  apis: [
+    path.join(process.cwd(), 'src/routes/*.ts'),
+    path.join(process.cwd(), 'dist/routes/*.js'),
+    path.join(process.cwd(), 'backend/src/routes/*.ts'),
+    path.join(process.cwd(), 'backend/dist/routes/*.js'),
+  ],
 };
 
 export const swaggerSpec = swaggerJSDoc(options);
