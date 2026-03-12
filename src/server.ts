@@ -45,6 +45,24 @@ app.set('trust proxy', 1); // Trust first proxy
 app.use(cors());
 app.use(express.json());
 
+// Diagnostic route
+app.get('/swagger-health', (req, res) => {
+    res.json({
+        status: 'ok',
+        time: new Date().toISOString(),
+        nodeEnv: process.env.NODE_ENV,
+        hasSwaggerSpec: !!swaggerSpec
+    });
+});
+
+// Swagger UI Documentation
+console.log('Registering Swagger UI at /api-docs');
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+    explorer: true,
+    customSiteTitle: "Tobfolio API Docs"
+}));
+
+
 // Rate Limiting
 // app.use(generalLimiter); // Removed global limiter to avoid double counting
 // app.use('/api/v1/auth', authLimiter); // Moved below
@@ -61,13 +79,6 @@ app.use('/api/v1/notifications', generalLimiter, notificationRoutes);
 app.use('/api/v1/admin', generalLimiter, adminRoutes);
 app.use('/api/v1/upload', generalLimiter, uploadRoutes);
 app.use('/api/v1/cron', generalLimiter, cronRoutes);
-
-// Swagger UI Documentation
-console.log('Registering Swagger UI at /api-docs');
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-    explorer: true,
-    customSiteTitle: "Tobfolio API Docs"
-}));
 
 
 // Basic Route

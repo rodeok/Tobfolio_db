@@ -41,4 +41,13 @@ const options: swaggerJSDoc.Options = {
   ],
 };
 
+console.log('Swagger Paths being scanned:', options.apis);
+
 export const swaggerSpec = swaggerJSDoc(options);
+
+if (swaggerSpec) {
+  console.log('Swagger Spec generated successfully');
+  // console.log('Spec titles:', Object.keys(swaggerSpec.paths || {}));
+} else {
+  console.warn('Swagger Spec generation returned empty or null');
+}
