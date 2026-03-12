@@ -14,6 +14,9 @@ import adminRoutes from './routes/adminRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import cronRoutes from './routes/cronRoutes.js';
 import { generalLimiter, authLimiter } from './middleware/rateLimiter.js';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './config/swagger.js';
+
 
 dotenv.config();
 
@@ -58,6 +61,10 @@ app.use('/api/v1/notifications', generalLimiter, notificationRoutes);
 app.use('/api/v1/admin', generalLimiter, adminRoutes);
 app.use('/api/v1/upload', generalLimiter, uploadRoutes);
 app.use('/api/v1/cron', generalLimiter, cronRoutes);
+
+// Swagger UI Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 
 // Basic Route
 app.get('/', (req, res) => {
