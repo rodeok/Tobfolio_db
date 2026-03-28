@@ -15,5 +15,26 @@ const verifyCronSecret = (req, res, next) => {
     }
     next();
 };
+/**
+ * @swagger
+ * tags:
+ *   name: Cron
+ *   description: Automated background tasks
+ */
+/**
+ * @swagger
+ * /api/v1/cron/check-rentals:
+ *   get:
+ *     summary: Trigger rental check cron job
+ *     tags: [Cron]
+ *     security:
+ *       - bearerAuth: []
+ *     description: Requires CRON_SECRET as bearer token
+ *     responses:
+ *       200:
+ *         description: Rental check initiated
+ *       401:
+ *         description: Unauthorized
+ */
 router.get('/check-rentals', verifyCronSecret, cronController_js_1.checkRentals);
 exports.default = router;

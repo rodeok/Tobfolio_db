@@ -8,6 +8,11 @@ export interface IUser extends Document {
     password?: string;
     isActive: boolean;
     isBanned: boolean;
+    referralCode: string;
+    referredBy?: mongoose.Types.ObjectId;
+    referralPoints: number;
+    resetPasswordToken?: string;
+    resetPasswordExpires?: Date;
     createdAt: Date;
 }
 
@@ -41,6 +46,22 @@ const userSchema = new Schema<IUser>({
         type: Boolean,
         default: false,
     },
+    referralCode: {
+        type: String,
+        unique: true,
+        sparse: true,
+    },
+    referredBy: {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        default: null,
+    },
+    referralPoints: {
+        type: Number,
+        default: 0,
+    },
+    resetPasswordToken: String,
+    resetPasswordExpires: Date,
     createdAt: {
         type: Date,
         default: Date.now,

@@ -108,14 +108,22 @@ router.post('/google', googleLogin); // Google login might have different valida
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - email
+ *             required: [email]
  *             properties:
  *               email:
  *                 type: string
+ *                 example: user@example.com
  *     responses:
  *       200:
- *         description: Reset email sent
+ *         description: Reset email sent successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Thanks! An email was sent that will ask you to click on a link...
  *       404:
  *         description: User not found
  */
@@ -133,17 +141,24 @@ router.post('/forgot-password', validate(forgotPasswordSchema), forgotPassword);
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - token
- *               - password
+ *             required: [token, password]
  *             properties:
  *               token:
  *                 type: string
  *               password:
  *                 type: string
+ *                 example: MyNewSecurePassword123
  *     responses:
  *       200:
- *         description: Password reset successful
+ *         description: Password reset successful!
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Password reset successful. You can now login with your new password.
  *       400:
  *         description: Invalid or expired token
  */

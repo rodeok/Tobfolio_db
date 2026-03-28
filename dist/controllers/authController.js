@@ -1,4 +1,37 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -6,6 +39,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.resetPassword = exports.forgotPassword = exports.login = exports.register = exports.googleLogin = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const crypto = __importStar(require("crypto"));
 const google_auth_library_1 = require("google-auth-library");
 const User_js_1 = __importDefault(require("../models/User.js"));
 const validations_js_1 = require("../utils/validations.js");
@@ -50,19 +84,35 @@ const register = async (req, res) => {
     try {
         const validatedData = validations_js_1.signupSchema.parse(req.body);
         const { name, email, password, phone } = validatedData;
+        const { referralCode: usedReferralCode } = req.body;
         const existingUser = await User_js_1.default.findOne({ email });
         if (existingUser) {
             return res.status(400).json({ message: 'User already exists' });
         }
+        // Generate a unique referral code for the new user
+        const newReferralCode = crypto.randomBytes(4).toString('hex').toUpperCase(); // e.g. A3F2C1B9
         const hashedPassword = await bcryptjs_1.default.hash(password, 12);
         const user = new User_js_1.default({
             name,
             email,
             password: hashedPassword,
             phone,
+            referralCode: newReferralCode,
         });
+        // If a referral code was provided, credit the referrer
+        if (usedReferralCode) {
+            const referrer = await User_js_1.default.findOne({ referralCode: usedReferralCode });
+            if (referrer) {
+                user.referredBy = referrer._id;
+                referrer.referralPoints = (referrer.referralPoints || 0) + 1;
+                await referrer.save();
+            }
+        }
         await user.save();
-        res.status(201).json({ message: 'User created successfully' });
+        res.status(201).json({
+            message: 'User created successfully',
+            referralCode: newReferralCode,
+        });
     }
     catch (error) {
         if (error.name === 'ZodError') {
@@ -104,8 +154,13 @@ const forgotPassword = async (req, res) => {
         if (!user) {
             return res.json({ message: "If the email exists, a reset link has been sent." });
         }
-        const token = jsonwebtoken_1.default.sign({ email }, process.env.JWT_SECRET || 'secret', { expiresIn: "80m" });
-        const resetLink = `https://www.tobfolio.com/reset-password?token=${token}`;
+        // Generate token
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const hash = crypto.createHash('sha256').update(resetToken).digest('hex');
+        user.resetPasswordToken = hash;
+        user.resetPasswordExpires = new Date(Date.now() + 3600000); // 1 hour
+        await user.save();
+        const resetLink = `https://www.tobfolio.com/reset-password?token=${resetToken}`;
         try {
             await (0, notifications_js_1.sendEmail)({
                 to: email,
@@ -119,7 +174,7 @@ const forgotPassword = async (req, res) => {
                             <div style="text-align: center; margin: 30px 0;">
                                 <a href="${resetLink}" style="display: inline-block; background-color: #2D7AFF; color: #fff; padding: 12px 28px; border-radius: 6px; text-decoration: none; font-weight: 500;">Reset Password</a>
                             </div>
-                            <p>This link will expire in <strong>80 minutes</strong>.</p>
+                            <p>This link will expire in <strong>1 hour</strong>.</p>
                             <p>If you didn’t request a password reset, you can safely ignore this email.</p>
                             <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 25px 0;">
                             <p style="font-size: 13px; color: #6b7280;">– The Tobfolio Team</p>
@@ -143,16 +198,24 @@ exports.forgotPassword = forgotPassword;
 const resetPassword = async (req, res) => {
     try {
         const { token, password } = req.body;
-        const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET || 'secret');
-        const hashed = await bcryptjs_1.default.hash(password, 10);
-        const user = await User_js_1.default.findOneAndUpdate({ email: decoded.email }, { password: hashed });
+        const hash = crypto.createHash('sha256').update(token).digest('hex');
+        const user = await User_js_1.default.findOne({
+            resetPasswordToken: hash,
+            resetPasswordExpires: { $gt: Date.now() }
+        });
         if (!user) {
-            return res.status(404).json({ message: "User not found." });
+            return res.status(400).json({ message: "Invalid or expired token." });
         }
+        const hashedPassword = await bcryptjs_1.default.hash(password, 12);
+        user.password = hashedPassword;
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+        await user.save();
         res.json({ message: "Password successfully reset!" });
     }
     catch (err) {
-        res.status(400).json({ message: "Invalid or expired link." });
+        console.error('Reset password error:', err);
+        res.status(500).json({ message: "Internal server error" });
     }
 };
 exports.resetPassword = resetPassword;

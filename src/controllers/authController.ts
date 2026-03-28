@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import * as crypto from 'crypto';
 import { OAuth2Client } from 'google-auth-library';
 import User from '../models/User.js';
 import { signupSchema, loginSchema } from '../utils/validations.js';
@@ -58,11 +59,15 @@ export const register = async (req: Request, res: Response) => {
     try {
         const validatedData = signupSchema.parse(req.body);
         const { name, email, password, phone } = validatedData;
+        const { referralCode: usedReferralCode } = req.body;
 
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.status(400).json({ message: 'User already exists' });
         }
+
+        // Generate a unique referral code for the new user
+        const newReferralCode = crypto.randomBytes(4).toString('hex').toUpperCase(); // e.g. A3F2C1B9
 
         const hashedPassword = await bcrypt.hash(password, 12);
         const user = new User({
@@ -70,11 +75,25 @@ export const register = async (req: Request, res: Response) => {
             email,
             password: hashedPassword,
             phone,
+            referralCode: newReferralCode,
         });
+
+        // If a referral code was provided, credit the referrer
+        if (usedReferralCode) {
+            const referrer = await User.findOne({ referralCode: usedReferralCode });
+            if (referrer) {
+                user.referredBy = referrer._id as any;
+                referrer.referralPoints = (referrer.referralPoints || 0) + 1;
+                await referrer.save();
+            }
+        }
 
         await user.save();
 
-        res.status(201).json({ message: 'User created successfully' });
+        res.status(201).json({
+            message: 'User created successfully',
+            referralCode: newReferralCode,
+        });
     } catch (error: any) {
         if (error.name === 'ZodError') {
             return res.status(400).json({ message: error.errors[0].message });
@@ -124,11 +143,18 @@ export const forgotPassword = async (req: Request, res: Response) => {
             return res.json({ message: "If the email exists, a reset link has been sent." });
         }
 
-        const token = jwt.sign({ email }, process.env.JWT_SECRET || 'secret', { expiresIn: "80m" });
-        const resetLink = `https://www.tobfolio.com/reset-password?token=${token}`;
+        // Generate token
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const hash = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+        user.resetPasswordToken = hash;
+        user.resetPasswordExpires = new Date(Date.now() + 3600000); // 1 hour
+        await user.save();
+
+        const resetLink = `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.tobfolio.com'}/reset-password?token=${resetToken}`;
 
         try {
-            await sendEmail({
+            const { data, error } = await sendEmail({
                 to: email,
                 subject: "Reset your password",
                 html: `
@@ -140,7 +166,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
                             <div style="text-align: center; margin: 30px 0;">
                                 <a href="${resetLink}" style="display: inline-block; background-color: #2D7AFF; color: #fff; padding: 12px 28px; border-radius: 6px; text-decoration: none; font-weight: 500;">Reset Password</a>
                             </div>
-                            <p>This link will expire in <strong>80 minutes</strong>.</p>
+                            <p>This link will expire in <strong>1 hour</strong>.</p>
                             <p>If you didn’t request a password reset, you can safely ignore this email.</p>
                             <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 25px 0;">
                             <p style="font-size: 13px; color: #6b7280;">– The Tobfolio Team</p>
@@ -149,8 +175,14 @@ export const forgotPassword = async (req: Request, res: Response) => {
                     </div>
                 `,
             });
+
+            if (error) {
+                console.error("Resend API Email error:", error);
+            } else {
+                console.log("Password reset email sent successfully:", data);
+            }
         } catch (emailError) {
-            console.error("Email error:", emailError);
+            console.error("Unexpected Email error:", emailError);
         }
 
         res.json({ message: "Thanks! An email was sent that will ask you to click on a link to verify that you own this account." });
@@ -163,16 +195,26 @@ export const forgotPassword = async (req: Request, res: Response) => {
 export const resetPassword = async (req: Request, res: Response) => {
     try {
         const { token, password } = req.body;
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as { email: string };
-        const hashed = await bcrypt.hash(password, 10);
+        const hash = crypto.createHash('sha256').update(token).digest('hex');
 
-        const user = await User.findOneAndUpdate({ email: decoded.email }, { password: hashed });
+        const user = await User.findOne({
+            resetPasswordToken: hash,
+            resetPasswordExpires: { $gt: Date.now() }
+        });
+
         if (!user) {
-            return res.status(404).json({ message: "User not found." });
+            return res.status(400).json({ message: "Invalid or expired token." });
         }
+
+        const hashedPassword = await bcrypt.hash(password, 12);
+        user.password = hashedPassword;
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+        await user.save();
 
         res.json({ message: "Password successfully reset!" });
     } catch (err) {
-        res.status(400).json({ message: "Invalid or expired link." });
+        console.error('Reset password error:', err);
+        res.status(500).json({ message: "Internal server error" });
     }
 };

@@ -1,6 +1,10 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+
+// Load environment variables immediately
+dotenv.config();
+
 import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import propertyRoutes from './routes/propertyRoutes.js';
@@ -13,12 +17,12 @@ import notificationRoutes from './routes/notificationRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import cronRoutes from './routes/cronRoutes.js';
+import handymanRoutes from './routes/handymanRoutes.js';
+import aiRoutes from './routes/aiRoutes.js';
+import rewardRoutes from './routes/rewardRoutes.js';
 import { generalLimiter, authLimiter } from './middleware/rateLimiter.js';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger.js';
-
-
-dotenv.config();
 
 // Suppress DEP0170 warning to prevent leaking MongoDB connection string in logs
 const originalEmit = process.emit;
@@ -85,6 +89,9 @@ app.use('/api/v1/notifications', generalLimiter, notificationRoutes);
 app.use('/api/v1/admin', generalLimiter, adminRoutes);
 app.use('/api/v1/upload', generalLimiter, uploadRoutes);
 app.use('/api/v1/cron', generalLimiter, cronRoutes);
+app.use('/api/v1/handymen', generalLimiter, handymanRoutes);
+app.use('/api/v1/ai', generalLimiter, aiRoutes);
+app.use('/api/v1/rewards', generalLimiter, rewardRoutes);
 
 
 // Basic Route

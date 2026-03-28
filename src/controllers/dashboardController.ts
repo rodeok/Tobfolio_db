@@ -4,6 +4,7 @@ import Tenant from '../models/Tenant.js';
 import Maintenance from '../models/Maintenance.js';
 import User from '../models/User.js';
 import { Request } from 'express';
+import { calculateDashboardMetrics } from '../utils/dashboardUtils.js';
 
 interface AuthRequest extends Request {
     user?: {
@@ -19,16 +20,11 @@ export const getDashboardData = async (req: AuthRequest, res: Response) => {
             return res.status(401).json({ message: 'Unauthorized' });
         }
 
-        // Fetch user data along with other data in parallel
-        const [user, properties, tenants, maintenance] = await Promise.all([
-            User.findById(userId).select('name'),
-            Property.find({ landlordId: userId }),
-            Tenant.find({ landlordId: userId }),
-            Maintenance.find({ landlordId: userId }),
-        ]);
+        // Fetch user data
+        const user = await User.findById(userId).select('name');
 
-        // 1. Total Rentals
-        const totalRentals = properties.length;
+        // Use the common utility for core metrics
+        const metrics = await calculateDashboardMetrics(userId);
 
         const now = new Date();
         const currentMonth = now.getMonth();
@@ -37,6 +33,12 @@ export const getDashboardData = async (req: AuthRequest, res: Response) => {
         const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
         const lastMonth = lastMonthDate.getMonth();
         const lastMonthYear = lastMonthDate.getFullYear();
+
+        // Fetch tenants and properties for growth calculation and chart
+        const [tenants, properties] = await Promise.all([
+            Tenant.find({ landlordId: userId }),
+            Property.find({ landlordId: userId }),
+        ]);
 
         // Helper to check if tenant was active in a given month/year
         const isTenantActiveInMonth = (tenant: any, month: number, year: number) => {
@@ -47,7 +49,7 @@ export const getDashboardData = async (req: AuthRequest, res: Response) => {
             return start <= monthEnd && end >= targetDate;
         };
 
-        // Calculate Gross Rent
+        // Calculate Gross Rent for income growth
         const currentMonthRent = tenants
             .filter(t => isTenantActiveInMonth(t, currentMonth, currentYear))
             .reduce((sum, t) => sum + (t.rentAmount || 0), 0);
@@ -55,28 +57,6 @@ export const getDashboardData = async (req: AuthRequest, res: Response) => {
         const lastMonthRent = tenants
             .filter(t => isTenantActiveInMonth(t, lastMonth, lastMonthYear))
             .reduce((sum, t) => sum + (t.rentAmount || 0), 0);
-
-        // Helper to calculate total rent so far for a tenant
-        const calculateTotalRentSoFar = (tenant: any) => {
-            const start = new Date(tenant.rentStart);
-            const end = new Date(tenant.rentEnd);
-            const today = new Date();
-            
-            const effectiveEnd = today < end ? today : end;
-            if (effectiveEnd < start) return 0;
-            
-            const months = (effectiveEnd.getFullYear() - start.getFullYear()) * 12 + (effectiveEnd.getMonth() - start.getMonth()) + 1;
-            return Math.max(0, months) * (tenant.rentAmount || 0);
-        };
-
-        const totalLifetimeIncome = tenants.reduce((sum, t) => sum + calculateTotalRentSoFar(t), 0);
-
-        // Calculate Maintenance Costs (Repairs + Property Renovations)
-        const totalMaintenanceCost = maintenance.reduce((sum, m) => sum + (m.cost || 0), 0) + 
-                                     properties.reduce((sum, p) => sum + (p.totalRenovationCost || 0), 0);
-
-        // Calculate Net Income (Profit - Cumulative)
-        const netBalance = totalLifetimeIncome - totalMaintenanceCost;
 
         const incomeGrowth = lastMonthRent === 0
             ? (currentMonthRent > 0 ? 100 : 0)
@@ -101,11 +81,11 @@ export const getDashboardData = async (req: AuthRequest, res: Response) => {
 
         res.json({
             userName: user?.name || 'User',
-            totalIncome: totalLifetimeIncome,
+            totalIncome: metrics.totalIncome,
             incomeGrowth: Math.round(incomeGrowth),
-            totalRentals,
-            netBalance,
-            maintenance: totalMaintenanceCost,
+            totalRentals: metrics.totalRentals,
+            netBalance: metrics.netBalance,
+            maintenance: metrics.maintenance,
             chartData,
             lastUpdated: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
         });

@@ -3,11 +3,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteTenant = exports.updateTenant = exports.getTenant = exports.createTenant = exports.getTenants = void 0;
+exports.renewTenant = exports.deleteTenant = exports.updateTenant = exports.getTenant = exports.createTenant = exports.getTenants = void 0;
 const Tenant_js_1 = __importDefault(require("../models/Tenant.js"));
+const User_js_1 = __importDefault(require("../models/User.js"));
 const getTenants = async (req, res) => {
+    const authReq = req;
     try {
-        const tenants = await Tenant_js_1.default.find({ landlordId: req.user?.userId })
+        const tenants = await Tenant_js_1.default.find({ landlordId: authReq.user?.userId })
             .populate('propertyId', 'title address type');
         res.json(tenants);
     }
@@ -17,10 +19,11 @@ const getTenants = async (req, res) => {
 };
 exports.getTenants = getTenants;
 const createTenant = async (req, res) => {
+    const authReq = req;
     try {
         const tenant = new Tenant_js_1.default({
             ...req.body,
-            landlordId: req.user?.userId,
+            landlordId: authReq.user?.userId,
         });
         await tenant.save();
         res.status(201).json(tenant);
@@ -32,8 +35,9 @@ const createTenant = async (req, res) => {
 };
 exports.createTenant = createTenant;
 const getTenant = async (req, res) => {
+    const authReq = req;
     try {
-        const tenant = await Tenant_js_1.default.findOne({ _id: req.params.id, landlordId: req.user?.userId });
+        const tenant = await Tenant_js_1.default.findOne({ _id: req.params.id, landlordId: authReq.user?.userId });
         if (!tenant) {
             return res.status(404).json({ message: 'Tenant not found' });
         }
@@ -45,8 +49,9 @@ const getTenant = async (req, res) => {
 };
 exports.getTenant = getTenant;
 const updateTenant = async (req, res) => {
+    const authReq = req;
     try {
-        const updatedTenant = await Tenant_js_1.default.findOneAndUpdate({ _id: req.params.id, landlordId: req.user?.userId }, req.body, { new: true });
+        const updatedTenant = await Tenant_js_1.default.findOneAndUpdate({ _id: req.params.id, landlordId: authReq.user?.userId }, req.body, { new: true });
         if (!updatedTenant) {
             return res.status(404).json({ message: 'Tenant not found or unauthorized' });
         }
@@ -58,15 +63,47 @@ const updateTenant = async (req, res) => {
 };
 exports.updateTenant = updateTenant;
 const deleteTenant = async (req, res) => {
+    const authReq = req;
     try {
-        const deletedTenant = await Tenant_js_1.default.findOneAndDelete({ _id: req.params.id, landlordId: req.user?.userId });
-        if (!deletedTenant) {
+        const tenant = await Tenant_js_1.default.findOne({ _id: req.params.id, landlordId: authReq.user?.userId });
+        if (!tenant) {
             return res.status(404).json({ message: 'Tenant not found or unauthorized' });
         }
-        res.json({ message: 'Tenant deleted successfully' });
+        // Automatically delete user/tenants as requested
+        const tenantEmail = tenant.email;
+        // Delete the tenant record
+        await Tenant_js_1.default.deleteOne({ _id: tenant._id });
+        // Delete the associated user record if it exists
+        if (tenantEmail) {
+            await User_js_1.default.findOneAndDelete({ email: tenantEmail });
+        }
+        res.json({ message: 'Tenant and associated user deleted successfully' });
     }
     catch (error) {
-        res.status(500).json({ message: 'Failed to delete tenant' });
+        console.error('Error deleting tenant:', error);
+        res.status(500).json({ message: 'Failed to delete tenant and associated user' });
     }
 };
 exports.deleteTenant = deleteTenant;
+const renewTenant = async (req, res) => {
+    const authReq = req;
+    try {
+        const { paymentFrequency, rentStart, rentEnd, rentAmount } = req.body;
+        const updatedTenant = await Tenant_js_1.default.findOneAndUpdate({ _id: req.params.id, landlordId: authReq.user?.userId }, {
+            paymentFrequency,
+            rentStart,
+            rentEnd,
+            rentAmount,
+            nextPaymentDate: rentStart // Optionally reset next payment date to renewal date
+        }, { new: true });
+        if (!updatedTenant) {
+            return res.status(404).json({ message: 'Tenant not found or unauthorized' });
+        }
+        res.json(updatedTenant);
+    }
+    catch (error) {
+        console.error('Error renewing tenant:', error);
+        res.status(500).json({ message: 'Failed to renew tenant' });
+    }
+};
+exports.renewTenant = renewTenant;

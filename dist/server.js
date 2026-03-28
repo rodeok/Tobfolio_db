@@ -18,7 +18,12 @@ const notificationRoutes_js_1 = __importDefault(require("./routes/notificationRo
 const adminRoutes_js_1 = __importDefault(require("./routes/adminRoutes.js"));
 const uploadRoutes_js_1 = __importDefault(require("./routes/uploadRoutes.js"));
 const cronRoutes_js_1 = __importDefault(require("./routes/cronRoutes.js"));
+const handymanRoutes_js_1 = __importDefault(require("./routes/handymanRoutes.js"));
+const aiRoutes_js_1 = __importDefault(require("./routes/aiRoutes.js"));
+const rewardRoutes_js_1 = __importDefault(require("./routes/rewardRoutes.js"));
 const rateLimiter_js_1 = require("./middleware/rateLimiter.js");
+const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
+const swagger_js_1 = require("./config/swagger.js");
 dotenv_1.default.config();
 // Suppress DEP0170 warning to prevent leaking MongoDB connection string in logs
 const originalEmit = process.emit;
@@ -39,6 +44,26 @@ const PORT = process.env.PORT || 5000;
 app.set('trust proxy', 1); // Trust first proxy
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
+// Global logger for Render debugging
+app.use((req, res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    next();
+});
+// Diagnostic route
+app.get('/swagger-health', (req, res) => {
+    res.json({
+        status: 'ok',
+        time: new Date().toISOString(),
+        nodeEnv: process.env.NODE_ENV,
+        hasSwaggerSpec: !!swagger_js_1.swaggerSpec
+    });
+});
+// Swagger UI Documentation
+console.log('Registering Swagger UI at /api-docs');
+app.use('/api-docs', swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swagger_js_1.swaggerSpec, {
+    explorer: true,
+    customSiteTitle: "Tobfolio API Docs"
+}));
 // Rate Limiting
 // app.use(generalLimiter); // Removed global limiter to avoid double counting
 // app.use('/api/v1/auth', authLimiter); // Moved below
@@ -54,21 +79,38 @@ app.use('/api/v1/notifications', rateLimiter_js_1.generalLimiter, notificationRo
 app.use('/api/v1/admin', rateLimiter_js_1.generalLimiter, adminRoutes_js_1.default);
 app.use('/api/v1/upload', rateLimiter_js_1.generalLimiter, uploadRoutes_js_1.default);
 app.use('/api/v1/cron', rateLimiter_js_1.generalLimiter, cronRoutes_js_1.default);
+app.use('/api/v1/handymen', rateLimiter_js_1.generalLimiter, handymanRoutes_js_1.default);
+app.use('/api/v1/ai', rateLimiter_js_1.generalLimiter, aiRoutes_js_1.default);
+app.use('/api/v1/rewards', rateLimiter_js_1.generalLimiter, rewardRoutes_js_1.default);
 // Basic Route
 app.get('/', (req, res) => {
     res.send('Tobfolio API is running...');
 });
+// Catch-all 404 for debugging
+app.use((req, res) => {
+    console.log(`[${new Date().toISOString()}] 404 - Unmatched Request: ${req.method} ${req.url}`);
+    res.status(404).json({
+        success: false,
+        message: `Route ${req.method} ${req.url} not found on this server`,
+        timestamp: new Date().toISOString()
+    });
+});
 // Start Server
 const startServer = async () => {
+    // Start listening immediately so health checks pass on Render
+    app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+        console.log(`Environment: ${process.env.NODE_ENV}`);
+        console.log(`Try health check at: /swagger-health`);
+    });
     try {
+        console.log('Connecting to database...');
         await (0, db_js_1.default)();
-        app.listen(PORT, () => {
-            console.log(`Server is running on port ${PORT}`);
-        });
+        console.log('Database connected successfully');
     }
     catch (error) {
         console.error('Failed to connect to database:', error);
-        process.exit(1);
+        // Don't exit here, allows diagnostic routes to work even if DB is down
     }
 };
 startServer();

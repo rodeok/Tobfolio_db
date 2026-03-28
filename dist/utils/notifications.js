@@ -10,7 +10,7 @@ const resend = new resend_1.Resend(process.env.RESEND_API_KEY);
 const twilioClient = (0, twilio_1.default)(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 const sendEmail = async ({ to, subject, html }) => {
     return await resend.emails.send({
-        from: "Landlord Management <onboarding@resend.dev>",
+        from: "Landlord Management <notification@tobfolio.com>",
         to: [to],
         subject,
         html,
