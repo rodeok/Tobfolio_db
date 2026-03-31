@@ -13,10 +13,11 @@ export const loginSchema = z.object({
 });
 
 export const propertySchema = z.object({
-    title: z.string().min(3, 'Title is required (min 3 chars)'),
+    name: z.string().min(3, 'Name is required (min 3 chars)'),
     address: z.string().min(5, 'Address is required (min 5 chars)'),
     type: z.string().min(1, 'Property type is required'),
     size: z.string().optional(),
+    units: z.number().int().positive().optional(),
     estimatedValue: z.number().nonnegative('Value must be positive').optional(),
     description: z.string().max(1000, 'Description too long').optional(),
     propertyImages: z.array(z.string().url()).optional(),

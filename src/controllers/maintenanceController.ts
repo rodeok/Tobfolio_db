@@ -6,13 +6,17 @@ import { Request } from 'express';
 interface AuthRequest extends Request {
     user?: {
         userId: string;
+        role: string;
+        landlordId?: string;
+        adminPrivilege: boolean;
     };
 }
 
 export const getMaintenanceRecords = async (req: AuthRequest, res: Response) => {
     try {
-        const maintenanceRecords = await Maintenance.find({ landlordId: req.user?.userId })
-            .populate('propertyId', 'title')
+        const actingLandlordId = req.user?.landlordId || req.user?.userId;
+        const maintenanceRecords = await Maintenance.find({ landlordId: actingLandlordId })
+            .populate('propertyId', 'name')
             .sort({ date: -1 });
         res.json(maintenanceRecords);
     } catch (error) {
@@ -22,10 +26,11 @@ export const getMaintenanceRecords = async (req: AuthRequest, res: Response) => 
 
 export const createMaintenanceRecord = async (req: AuthRequest, res: Response) => {
     try {
+        const actingLandlordId = req.user?.landlordId || req.user?.userId;
         const validatedData = maintenanceSchema.parse(req.body);
         const maintenance = new Maintenance({
             ...validatedData,
-            landlordId: req.user?.userId,
+            landlordId: actingLandlordId,
         });
         await maintenance.save();
         res.status(201).json(maintenance);
@@ -40,8 +45,9 @@ export const createMaintenanceRecord = async (req: AuthRequest, res: Response) =
 
 export const getMaintenanceRecord = async (req: AuthRequest, res: Response) => {
     try {
-        const maintenance = await Maintenance.findOne({ _id: req.params.id, landlordId: req.user?.userId })
-            .populate('propertyId', 'title');
+        const actingLandlordId = req.user?.landlordId || req.user?.userId;
+        const maintenance = await Maintenance.findOne({ _id: req.params.id, landlordId: actingLandlordId })
+            .populate('propertyId', 'name');
 
         if (!maintenance) {
             return res.status(404).json({ message: 'Maintenance record not found' });

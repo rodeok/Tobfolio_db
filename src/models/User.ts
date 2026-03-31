@@ -6,6 +6,9 @@ export interface IUser extends Document {
     phone?: string;
     about: string;
     password?: string;
+    role: 'LANDLORD' | 'MANAGER' | 'CARETAKER';
+    landlordId?: mongoose.Types.ObjectId; // Refers to the LANDLORD who invited them
+    adminPrivilege: boolean;
     isActive: boolean;
     isBanned: boolean;
     referralCode: string;
@@ -37,6 +40,20 @@ const userSchema = new Schema<IUser>({
     password: {
         type: String,
         required: false,
+    },
+    role: {
+        type: String,
+        enum: ['LANDLORD', 'MANAGER', 'CARETAKER'],
+        default: 'LANDLORD',
+    },
+    landlordId: {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        default: null,
+    },
+    adminPrivilege: {
+        type: Boolean,
+        default: false,
     },
     isActive: {
         type: Boolean,

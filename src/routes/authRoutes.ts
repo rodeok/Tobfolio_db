@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { register, login, googleLogin, forgotPassword, resetPassword } from '../controllers/authController.js';
+import { register, login, googleLogin, forgotPassword, resetPassword, acceptInvite } from '../controllers/authController.js';
 import { validate } from '../middleware/validationMiddleware.js';
 import { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema } from '../schemas/auth.schema.js';
 
@@ -163,5 +163,6 @@ router.post('/forgot-password', validate(forgotPasswordSchema), forgotPassword);
  *         description: Invalid or expired token
  */
 router.post('/reset-password', validate(resetPasswordSchema), resetPassword);
+router.post('/accept-invite', acceptInvite);
 
 export default router;

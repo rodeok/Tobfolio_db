@@ -20,6 +20,7 @@ import cronRoutes from './routes/cronRoutes.js';
 import handymanRoutes from './routes/handymanRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 import rewardRoutes from './routes/rewardRoutes.js';
+import teamRoutes from './routes/teamRoutes.js';
 import { generalLimiter, authLimiter } from './middleware/rateLimiter.js';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger.js';
@@ -92,6 +93,7 @@ app.use('/api/v1/cron', generalLimiter, cronRoutes);
 app.use('/api/v1/handymen', generalLimiter, handymanRoutes);
 app.use('/api/v1/ai', generalLimiter, aiRoutes);
 app.use('/api/v1/rewards', generalLimiter, rewardRoutes);
+app.use('/api/v1/team', generalLimiter, teamRoutes);
 
 
 // Basic Route

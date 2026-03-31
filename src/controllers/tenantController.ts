@@ -5,14 +5,18 @@ import User from '../models/User.js';
 interface AuthRequest extends express.Request {
     user?: {
         userId: string;
+        role: string;
+        landlordId?: string;
+        adminPrivilege: boolean;
     };
 }
 
 export const getTenants = async (req: express.Request, res: express.Response) => {
     const authReq = req as AuthRequest;
     try {
-        const tenants = await Tenant.find({ landlordId: authReq.user?.userId })
-            .populate('propertyId', 'title address type');
+        const actingLandlordId = authReq.user?.landlordId || authReq.user?.userId;
+        const tenants = await Tenant.find({ landlordId: actingLandlordId })
+            .populate('propertyId', 'name address type');
         res.json(tenants);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching tenants' });
@@ -22,9 +26,10 @@ export const getTenants = async (req: express.Request, res: express.Response) =>
 export const createTenant = async (req: express.Request, res: express.Response) => {
     const authReq = req as AuthRequest;
     try {
+        const actingLandlordId = authReq.user?.landlordId || authReq.user?.userId;
         const tenant = new Tenant({
             ...req.body,
-            landlordId: authReq.user?.userId,
+            landlordId: actingLandlordId,
         });
         await tenant.save();
         res.status(201).json(tenant);
@@ -37,7 +42,8 @@ export const createTenant = async (req: express.Request, res: express.Response) 
 export const getTenant = async (req: express.Request, res: express.Response) => {
     const authReq = req as AuthRequest;
     try {
-        const tenant = await Tenant.findOne({ _id: req.params.id, landlordId: authReq.user?.userId });
+        const actingLandlordId = authReq.user?.landlordId || authReq.user?.userId;
+        const tenant = await Tenant.findOne({ _id: req.params.id, landlordId: actingLandlordId });
         if (!tenant) {
             return res.status(404).json({ message: 'Tenant not found' });
         }
@@ -50,8 +56,9 @@ export const getTenant = async (req: express.Request, res: express.Response) => 
 export const updateTenant = async (req: express.Request, res: express.Response) => {
     const authReq = req as AuthRequest;
     try {
+        const actingLandlordId = authReq.user?.landlordId || authReq.user?.userId;
         const updatedTenant = await Tenant.findOneAndUpdate(
-            { _id: req.params.id, landlordId: authReq.user?.userId },
+            { _id: req.params.id, landlordId: actingLandlordId },
             req.body,
             { new: true }
         );
@@ -69,7 +76,8 @@ export const updateTenant = async (req: express.Request, res: express.Response) 
 export const deleteTenant = async (req: express.Request, res: express.Response) => {
     const authReq = req as AuthRequest;
     try {
-        const tenant = await Tenant.findOne({ _id: req.params.id, landlordId: authReq.user?.userId });
+        const actingLandlordId = authReq.user?.landlordId || authReq.user?.userId;
+        const tenant = await Tenant.findOne({ _id: req.params.id, landlordId: actingLandlordId });
         
         if (!tenant) {
             return res.status(404).json({ message: 'Tenant not found or unauthorized' });
@@ -96,10 +104,11 @@ export const deleteTenant = async (req: express.Request, res: express.Response) 
 export const renewTenant = async (req: express.Request, res: express.Response) => {
     const authReq = req as AuthRequest;
     try {
+        const actingLandlordId = authReq.user?.landlordId || authReq.user?.userId;
         const { paymentFrequency, rentStart, rentEnd, rentAmount } = req.body;
         
         const updatedTenant = await Tenant.findOneAndUpdate(
-            { _id: req.params.id, landlordId: authReq.user?.userId },
+            { _id: req.params.id, landlordId: actingLandlordId },
             { 
                 paymentFrequency, 
                 rentStart, 

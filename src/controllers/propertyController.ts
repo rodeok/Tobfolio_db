@@ -8,12 +8,16 @@ import { Request } from 'express';
 interface AuthRequest extends Request {
     user?: {
         userId: string;
+        role: string;
+        landlordId?: string;
+        adminPrivilege: boolean;
     };
 }
 
 export const getProperties = async (req: AuthRequest, res: Response) => {
     try {
-        const properties = await Property.find({ landlordId: req.user?.userId });
+        const actingLandlordId = req.user?.landlordId || req.user?.userId;
+        const properties = await Property.find({ landlordId: actingLandlordId });
         res.json(properties);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching properties' });
@@ -22,10 +26,15 @@ export const getProperties = async (req: AuthRequest, res: Response) => {
 
 export const createProperty = async (req: AuthRequest, res: Response) => {
     try {
+        if (req.user?.role !== 'LANDLORD' && !req.user?.adminPrivilege) {
+            return res.status(403).json({ message: 'You do not have permission to add properties' });
+        }
+
+        const actingLandlordId = req.user?.landlordId || req.user?.userId;
         const validatedData = propertySchema.parse(req.body);
         const property = await Property.create({
             ...validatedData,
-            landlordId: req.user?.userId,
+            landlordId: actingLandlordId,
         });
         res.status(201).json(property);
     } catch (error: any) {
@@ -38,7 +47,8 @@ export const createProperty = async (req: AuthRequest, res: Response) => {
 
 export const getProperty = async (req: AuthRequest, res: Response) => {
     try {
-        const property = await Property.findOne({ _id: req.params.id, landlordId: req.user?.userId });
+        const actingLandlordId = req.user?.landlordId || req.user?.userId;
+        const property = await Property.findOne({ _id: req.params.id, landlordId: actingLandlordId });
         if (!property) {
             return res.status(404).json({ message: 'Property not found' });
         }
@@ -57,7 +67,12 @@ export const getProperty = async (req: AuthRequest, res: Response) => {
 
 export const deleteProperty = async (req: AuthRequest, res: Response) => {
     try {
-        const property = await Property.findOneAndDelete({ _id: req.params.id, landlordId: req.user?.userId });
+        if (req.user?.role !== 'LANDLORD' && !req.user?.adminPrivilege) {
+            return res.status(403).json({ message: 'You do not have permission to delete properties' });
+        }
+
+        const actingLandlordId = req.user?.landlordId || req.user?.userId;
+        const property = await Property.findOneAndDelete({ _id: req.params.id, landlordId: actingLandlordId });
         if (!property) {
             return res.status(404).json({ message: 'Property not found or unauthorized' });
         }

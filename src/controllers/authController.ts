@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import * as crypto from 'crypto';
 import { OAuth2Client } from 'google-auth-library';
 import User from '../models/User.js';
+import Invitation from '../models/Invitation.js';
 import { signupSchema, loginSchema } from '../utils/validations.js';
 import { sendEmail } from '../utils/notifications.js';
 
@@ -216,5 +217,64 @@ export const resetPassword = async (req: Request, res: Response) => {
     } catch (err) {
         console.error('Reset password error:', err);
         res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+export const acceptInvite = async (req: Request, res: Response) => {
+    try {
+        const { token, name, password } = req.body;
+        
+        const invitation = await Invitation.findOne({ token, status: 'PENDING' });
+        if (!invitation) {
+            return res.status(404).json({ message: 'Invitation not found or already accepted' });
+        }
+
+        if (invitation.expiresAt < new Date()) {
+            invitation.status = 'EXPIRED';
+            await invitation.save();
+            return res.status(400).json({ message: 'Invitation has expired' });
+        }
+
+        const existingUser = await User.findOne({ email: invitation.email });
+        if (existingUser) {
+            return res.status(400).json({ message: 'User already exists' });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 12);
+        
+        const newUser = new User({
+            name,
+            email: invitation.email,
+            password: hashedPassword,
+            role: invitation.role,
+            landlordId: invitation.landlordId,
+            adminPrivilege: invitation.adminPrivilege,
+            isVerified: true,
+        });
+
+        await newUser.save();
+
+        invitation.status = 'ACCEPTED';
+        await invitation.save();
+
+        const jwtToken = jwt.sign(
+            { userId: newUser._id },
+            process.env.JWT_SECRET || 'secret',
+            { expiresIn: '1h' }
+        );
+
+        res.status(201).json({
+            message: 'Account created successfully',
+            token: jwtToken,
+            user: {
+                id: newUser._id,
+                name: newUser.name,
+                email: newUser.email,
+                role: newUser.role,
+            }
+        });
+    } catch (error) {
+        console.error('Accept invite error:', error);
+        res.status(500).json({ message: 'Error accepting invitation' });
     }
 };

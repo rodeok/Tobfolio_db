@@ -10,11 +10,12 @@ export interface IRenovation {
 
 export interface IProperty extends Document {
     landlordId: mongoose.Types.ObjectId;
-    title: string;
+    name: string;
     description?: string;
     address: string;
     type: string;
-    size: string;
+    size?: string;
+    units?: number;
     propertyImages: string[];
     renovations: IRenovation[];
     totalRenovationCost: number;
@@ -46,7 +47,7 @@ const propertySchema = new Schema<IProperty>({
         ref: 'User',
         required: true,
     },
-    title: {
+    name: {
         type: String,
         required: true,
     },
@@ -61,7 +62,11 @@ const propertySchema = new Schema<IProperty>({
     },
     size: {
         type: String,
-        required: true,
+        required: false,
+    },
+    units: {
+        type: Number,
+        default: 1,
     },
     propertyImages: [String],
     renovations: [renovationSchema],
