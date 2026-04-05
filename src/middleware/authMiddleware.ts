@@ -8,6 +8,7 @@ interface AuthRequest extends Request {
         role: string;
         landlordId?: string;
         adminPrivilege: boolean;
+        name?: string;
     };
 }
 

@@ -34,70 +34,43 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
-const renovationSchema = new mongoose_1.Schema({
-    type: {
+const invitationSchema = new mongoose_1.Schema({
+    email: {
         type: String,
         required: true,
     },
-    description: String,
-    cost: {
-        type: Number,
+    role: {
+        type: String,
+        enum: ['MANAGER', 'CARETAKER'],
         required: true,
     },
-    date: {
-        type: Date,
-        default: Date.now,
-    },
-    documents: [String],
-});
-const propertySchema = new mongoose_1.Schema({
     landlordId: {
         type: mongoose_1.Schema.Types.ObjectId,
         ref: 'User',
         required: true,
     },
-    name: {
+    token: {
         type: String,
         required: true,
+        unique: true,
     },
-    description: String,
-    address: {
+    status: {
         type: String,
+        enum: ['PENDING', 'ACCEPTED', 'EXPIRED'],
+        default: 'PENDING',
+    },
+    adminPrivilege: {
+        type: Boolean,
+        default: false,
+    },
+    expiresAt: {
+        type: Date,
         required: true,
     },
-    type: {
-        type: String,
-        required: true,
-    },
-    size: {
-        type: String,
-        required: false,
-    },
-    units: {
-        type: Number,
-        default: 1,
-    },
-    propertyImages: [String],
-    renovations: [renovationSchema],
-    totalRenovationCost: {
-        type: Number,
-        default: 0,
-    },
-    purchasePrice: Number,
-    estimatedValue: Number,
     createdAt: {
         type: Date,
         default: Date.now,
     },
 });
-// Calculate total renovation cost before saving
-propertySchema.pre('save', function (next) {
-    if (this.renovations && this.renovations.length > 0) {
-        this.totalRenovationCost = this.renovations.reduce((total, renovation) => {
-            return total + renovation.cost;
-        }, 0);
-    }
-    next();
-});
-const Property = mongoose_1.default.model('Property', propertySchema);
-exports.default = Property;
+const Invitation = mongoose_1.default.model('Invitation', invitationSchema);
+exports.default = Invitation;

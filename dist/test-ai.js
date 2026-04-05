@@ -28,7 +28,7 @@ async function testAI() {
         // 2. Add a test property
         console.log('Adding test property...');
         const propRes = await axios_1.default.post(`${BASE_URL}/properties`, {
-            title: 'Test Mansion',
+            name: 'Test Mansion',
             address: '123 AI Street',
             type: 'Mansion',
             size: '5000 sqft',

@@ -9,8 +9,9 @@ const User_js_1 = __importDefault(require("../models/User.js"));
 const getTenants = async (req, res) => {
     const authReq = req;
     try {
-        const tenants = await Tenant_js_1.default.find({ landlordId: authReq.user?.userId })
-            .populate('propertyId', 'title address type');
+        const actingLandlordId = authReq.user?.landlordId || authReq.user?.userId;
+        const tenants = await Tenant_js_1.default.find({ landlordId: actingLandlordId })
+            .populate('propertyId', 'name address type');
         res.json(tenants);
     }
     catch (error) {
@@ -21,9 +22,10 @@ exports.getTenants = getTenants;
 const createTenant = async (req, res) => {
     const authReq = req;
     try {
+        const actingLandlordId = authReq.user?.landlordId || authReq.user?.userId;
         const tenant = new Tenant_js_1.default({
             ...req.body,
-            landlordId: authReq.user?.userId,
+            landlordId: actingLandlordId,
         });
         await tenant.save();
         res.status(201).json(tenant);
@@ -37,7 +39,8 @@ exports.createTenant = createTenant;
 const getTenant = async (req, res) => {
     const authReq = req;
     try {
-        const tenant = await Tenant_js_1.default.findOne({ _id: req.params.id, landlordId: authReq.user?.userId });
+        const actingLandlordId = authReq.user?.landlordId || authReq.user?.userId;
+        const tenant = await Tenant_js_1.default.findOne({ _id: req.params.id, landlordId: actingLandlordId });
         if (!tenant) {
             return res.status(404).json({ message: 'Tenant not found' });
         }
@@ -51,7 +54,8 @@ exports.getTenant = getTenant;
 const updateTenant = async (req, res) => {
     const authReq = req;
     try {
-        const updatedTenant = await Tenant_js_1.default.findOneAndUpdate({ _id: req.params.id, landlordId: authReq.user?.userId }, req.body, { new: true });
+        const actingLandlordId = authReq.user?.landlordId || authReq.user?.userId;
+        const updatedTenant = await Tenant_js_1.default.findOneAndUpdate({ _id: req.params.id, landlordId: actingLandlordId }, req.body, { new: true });
         if (!updatedTenant) {
             return res.status(404).json({ message: 'Tenant not found or unauthorized' });
         }
@@ -65,7 +69,8 @@ exports.updateTenant = updateTenant;
 const deleteTenant = async (req, res) => {
     const authReq = req;
     try {
-        const tenant = await Tenant_js_1.default.findOne({ _id: req.params.id, landlordId: authReq.user?.userId });
+        const actingLandlordId = authReq.user?.landlordId || authReq.user?.userId;
+        const tenant = await Tenant_js_1.default.findOne({ _id: req.params.id, landlordId: actingLandlordId });
         if (!tenant) {
             return res.status(404).json({ message: 'Tenant not found or unauthorized' });
         }
@@ -88,8 +93,9 @@ exports.deleteTenant = deleteTenant;
 const renewTenant = async (req, res) => {
     const authReq = req;
     try {
+        const actingLandlordId = authReq.user?.landlordId || authReq.user?.userId;
         const { paymentFrequency, rentStart, rentEnd, rentAmount } = req.body;
-        const updatedTenant = await Tenant_js_1.default.findOneAndUpdate({ _id: req.params.id, landlordId: authReq.user?.userId }, {
+        const updatedTenant = await Tenant_js_1.default.findOneAndUpdate({ _id: req.params.id, landlordId: actingLandlordId }, {
             paymentFrequency,
             rentStart,
             rentEnd,

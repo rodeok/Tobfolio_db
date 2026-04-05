@@ -6,6 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
+// Load environment variables immediately
+dotenv_1.default.config();
 const db_js_1 = __importDefault(require("./config/db.js"));
 const authRoutes_js_1 = __importDefault(require("./routes/authRoutes.js"));
 const propertyRoutes_js_1 = __importDefault(require("./routes/propertyRoutes.js"));
@@ -21,10 +23,10 @@ const cronRoutes_js_1 = __importDefault(require("./routes/cronRoutes.js"));
 const handymanRoutes_js_1 = __importDefault(require("./routes/handymanRoutes.js"));
 const aiRoutes_js_1 = __importDefault(require("./routes/aiRoutes.js"));
 const rewardRoutes_js_1 = __importDefault(require("./routes/rewardRoutes.js"));
+const teamRoutes_js_1 = __importDefault(require("./routes/teamRoutes.js"));
 const rateLimiter_js_1 = require("./middleware/rateLimiter.js");
 const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
 const swagger_js_1 = require("./config/swagger.js");
-dotenv_1.default.config();
 // Suppress DEP0170 warning to prevent leaking MongoDB connection string in logs
 const originalEmit = process.emit;
 process.emit = function (name, data, ...args) {
@@ -82,6 +84,7 @@ app.use('/api/v1/cron', rateLimiter_js_1.generalLimiter, cronRoutes_js_1.default
 app.use('/api/v1/handymen', rateLimiter_js_1.generalLimiter, handymanRoutes_js_1.default);
 app.use('/api/v1/ai', rateLimiter_js_1.generalLimiter, aiRoutes_js_1.default);
 app.use('/api/v1/rewards', rateLimiter_js_1.generalLimiter, rewardRoutes_js_1.default);
+app.use('/api/v1/team', rateLimiter_js_1.generalLimiter, teamRoutes_js_1.default);
 // Basic Route
 app.get('/', (req, res) => {
     res.send('Tobfolio API is running...');

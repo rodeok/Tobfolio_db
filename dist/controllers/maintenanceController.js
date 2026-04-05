@@ -8,8 +8,9 @@ const Maintenance_js_1 = __importDefault(require("../models/Maintenance.js"));
 const validations_js_1 = require("../utils/validations.js");
 const getMaintenanceRecords = async (req, res) => {
     try {
-        const maintenanceRecords = await Maintenance_js_1.default.find({ landlordId: req.user?.userId })
-            .populate('propertyId', 'title')
+        const actingLandlordId = req.user?.landlordId || req.user?.userId;
+        const maintenanceRecords = await Maintenance_js_1.default.find({ landlordId: actingLandlordId })
+            .populate('propertyId', 'name')
             .sort({ date: -1 });
         res.json(maintenanceRecords);
     }
@@ -20,10 +21,11 @@ const getMaintenanceRecords = async (req, res) => {
 exports.getMaintenanceRecords = getMaintenanceRecords;
 const createMaintenanceRecord = async (req, res) => {
     try {
+        const actingLandlordId = req.user?.landlordId || req.user?.userId;
         const validatedData = validations_js_1.maintenanceSchema.parse(req.body);
         const maintenance = new Maintenance_js_1.default({
             ...validatedData,
-            landlordId: req.user?.userId,
+            landlordId: actingLandlordId,
         });
         await maintenance.save();
         res.status(201).json(maintenance);
@@ -39,8 +41,9 @@ const createMaintenanceRecord = async (req, res) => {
 exports.createMaintenanceRecord = createMaintenanceRecord;
 const getMaintenanceRecord = async (req, res) => {
     try {
-        const maintenance = await Maintenance_js_1.default.findOne({ _id: req.params.id, landlordId: req.user?.userId })
-            .populate('propertyId', 'title');
+        const actingLandlordId = req.user?.landlordId || req.user?.userId;
+        const maintenance = await Maintenance_js_1.default.findOne({ _id: req.params.id, landlordId: actingLandlordId })
+            .populate('propertyId', 'name');
         if (!maintenance) {
             return res.status(404).json({ message: 'Maintenance record not found' });
         }

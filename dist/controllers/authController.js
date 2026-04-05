@@ -36,12 +36,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resetPassword = exports.forgotPassword = exports.login = exports.register = exports.googleLogin = void 0;
+exports.acceptInvite = exports.resetPassword = exports.forgotPassword = exports.login = exports.register = exports.googleLogin = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const crypto = __importStar(require("crypto"));
 const google_auth_library_1 = require("google-auth-library");
 const User_js_1 = __importDefault(require("../models/User.js"));
+const Invitation_js_1 = __importDefault(require("../models/Invitation.js"));
 const validations_js_1 = require("../utils/validations.js");
 const notifications_js_1 = require("../utils/notifications.js");
 const client = new google_auth_library_1.OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -160,9 +161,9 @@ const forgotPassword = async (req, res) => {
         user.resetPasswordToken = hash;
         user.resetPasswordExpires = new Date(Date.now() + 3600000); // 1 hour
         await user.save();
-        const resetLink = `https://www.tobfolio.com/reset-password?token=${resetToken}`;
+        const resetLink = `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.tobfolio.com'}/reset-password?token=${resetToken}`;
         try {
-            await (0, notifications_js_1.sendEmail)({
+            const { data, error } = await (0, notifications_js_1.sendEmail)({
                 to: email,
                 subject: "Reset your password",
                 html: `
@@ -183,9 +184,15 @@ const forgotPassword = async (req, res) => {
                     </div>
                 `,
             });
+            if (error) {
+                console.error("Resend API Email error:", error);
+            }
+            else {
+                console.log("Password reset email sent successfully:", data);
+            }
         }
         catch (emailError) {
-            console.error("Email error:", emailError);
+            console.error("Unexpected Email error:", emailError);
         }
         res.json({ message: "Thanks! An email was sent that will ask you to click on a link to verify that you own this account." });
     }
@@ -219,3 +226,50 @@ const resetPassword = async (req, res) => {
     }
 };
 exports.resetPassword = resetPassword;
+const acceptInvite = async (req, res) => {
+    try {
+        const { token, name, password } = req.body;
+        const invitation = await Invitation_js_1.default.findOne({ token, status: 'PENDING' });
+        if (!invitation) {
+            return res.status(404).json({ message: 'Invitation not found or already accepted' });
+        }
+        if (invitation.expiresAt < new Date()) {
+            invitation.status = 'EXPIRED';
+            await invitation.save();
+            return res.status(400).json({ message: 'Invitation has expired' });
+        }
+        const existingUser = await User_js_1.default.findOne({ email: invitation.email });
+        if (existingUser) {
+            return res.status(400).json({ message: 'User already exists' });
+        }
+        const hashedPassword = await bcryptjs_1.default.hash(password, 12);
+        const newUser = new User_js_1.default({
+            name,
+            email: invitation.email,
+            password: hashedPassword,
+            role: invitation.role,
+            landlordId: invitation.landlordId,
+            adminPrivilege: invitation.adminPrivilege,
+            isVerified: true,
+        });
+        await newUser.save();
+        invitation.status = 'ACCEPTED';
+        await invitation.save();
+        const jwtToken = jsonwebtoken_1.default.sign({ userId: newUser._id }, process.env.JWT_SECRET || 'secret', { expiresIn: '1h' });
+        res.status(201).json({
+            message: 'Account created successfully',
+            token: jwtToken,
+            user: {
+                id: newUser._id,
+                name: newUser.name,
+                email: newUser.email,
+                role: newUser.role,
+            }
+        });
+    }
+    catch (error) {
+        console.error('Accept invite error:', error);
+        res.status(500).json({ message: 'Error accepting invitation' });
+    }
+};
+exports.acceptInvite = acceptInvite;

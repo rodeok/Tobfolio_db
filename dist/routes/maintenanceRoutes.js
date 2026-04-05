@@ -42,12 +42,12 @@ router.get('/', maintenanceController_1.getMaintenanceRecords);
  *             type: object
  *             required:
  *               - propertyId
- *               - title
+ *               - type
  *               - cost
  *             properties:
  *               propertyId:
  *                 type: string
- *               title:
+ *               type:
  *                 type: string
  *               description:
  *                 type: string

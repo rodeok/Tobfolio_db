@@ -13,62 +13,7 @@ router.use(authMiddleware_js_1.authMiddleware);
  */
 /**
  * @swagger
- * components:
- *   schemas:
- *     Reward:
- *       type: object
- *       properties:
- *         _id:
- *           type: string
- *         name:
- *           type: string
- *           example: Tobfolio T-Shirt
- *         description:
- *           type: string
- *           example: Premium cotton tee with the Tobfolio logo
- *         imageUrl:
- *           type: string
- *           example: https://res.cloudinary.com/tobfolio/image/upload/tshirt.jpg
- *         pointsRequired:
- *           type: integer
- *           example: 10
- *         isActive:
- *           type: boolean
- *         createdAt:
- *           type: string
- *           format: date-time
- *
- *     Redemption:
- *       type: object
- *       properties:
- *         _id:
- *           type: string
- *         userId:
- *           type: object
- *           properties:
- *             _id:
- *               type: string
- *             name:
- *               type: string
- *             email:
- *               type: string
- *         rewardId:
- *           type: object
- *           properties:
- *             _id:
- *               type: string
- *             name:
- *               type: string
- *             imageUrl:
- *               type: string
- *         pointsSpent:
- *           type: integer
- *         status:
- *           type: string
- *           enum: [pending, fulfilled, cancelled]
- *         createdAt:
- *           type: string
- *           format: date-time
+ * # Schemas for Rewards and Redemptions are now defined centrally in src/config/swagger.ts
  */
 /**
  * @swagger

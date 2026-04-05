@@ -9,7 +9,8 @@ const Maintenance_js_1 = __importDefault(require("../models/Maintenance.js"));
 const validations_js_1 = require("../utils/validations.js");
 const getProperties = async (req, res) => {
     try {
-        const properties = await Property_js_1.default.find({ landlordId: req.user?.userId });
+        const actingLandlordId = req.user?.landlordId || req.user?.userId;
+        const properties = await Property_js_1.default.find({ landlordId: actingLandlordId });
         res.json(properties);
     }
     catch (error) {
@@ -19,10 +20,14 @@ const getProperties = async (req, res) => {
 exports.getProperties = getProperties;
 const createProperty = async (req, res) => {
     try {
+        if (req.user?.role !== 'LANDLORD' && !req.user?.adminPrivilege) {
+            return res.status(403).json({ message: 'You do not have permission to add properties' });
+        }
+        const actingLandlordId = req.user?.landlordId || req.user?.userId;
         const validatedData = validations_js_1.propertySchema.parse(req.body);
         const property = await Property_js_1.default.create({
             ...validatedData,
-            landlordId: req.user?.userId,
+            landlordId: actingLandlordId,
         });
         res.status(201).json(property);
     }
@@ -36,7 +41,8 @@ const createProperty = async (req, res) => {
 exports.createProperty = createProperty;
 const getProperty = async (req, res) => {
     try {
-        const property = await Property_js_1.default.findOne({ _id: req.params.id, landlordId: req.user?.userId });
+        const actingLandlordId = req.user?.landlordId || req.user?.userId;
+        const property = await Property_js_1.default.findOne({ _id: req.params.id, landlordId: actingLandlordId });
         if (!property) {
             return res.status(404).json({ message: 'Property not found' });
         }
@@ -53,7 +59,11 @@ const getProperty = async (req, res) => {
 exports.getProperty = getProperty;
 const deleteProperty = async (req, res) => {
     try {
-        const property = await Property_js_1.default.findOneAndDelete({ _id: req.params.id, landlordId: req.user?.userId });
+        if (req.user?.role !== 'LANDLORD' && !req.user?.adminPrivilege) {
+            return res.status(403).json({ message: 'You do not have permission to delete properties' });
+        }
+        const actingLandlordId = req.user?.landlordId || req.user?.userId;
+        const property = await Property_js_1.default.findOneAndDelete({ _id: req.params.id, landlordId: actingLandlordId });
         if (!property) {
             return res.status(404).json({ message: 'Property not found or unauthorized' });
         }

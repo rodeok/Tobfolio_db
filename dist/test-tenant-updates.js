@@ -51,7 +51,7 @@ async function testTenantUpdates() {
     // ── 2. Add a property ─────────────────────────────────────────
     console.log('2️⃣  Creating test property...');
     const property = await api('POST', '/properties', {
-        title: 'Test Villa',
+        name: 'Test Villa',
         address: '456 Test Lane',
         type: 'Villa',
         size: '2000 sqft',

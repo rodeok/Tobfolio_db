@@ -48,6 +48,12 @@ router.post('/login', adminController_js_1.adminLogin);
  *     responses:
  *       200:
  *         description: List of all registered users
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/User'
  *       401:
  *         description: Unauthorized
  *       403:
@@ -70,7 +76,17 @@ router.get('/users', adminMiddleware_js_1.adminMiddleware, adminController_js_1.
  *           type: string
  *     responses:
  *       200:
- *         description: User ban status toggled
+ *         description: User ban status toggled successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: User banned successfully
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
  *       403:
  *         description: Forbidden
  */
@@ -91,7 +107,17 @@ router.patch('/users/:userId/ban', adminMiddleware_js_1.adminMiddleware, adminCo
  *           type: string
  *     responses:
  *       200:
- *         description: User suspend status toggled
+ *         description: User suspend status toggled successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: User suspended successfully
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
  *       403:
  *         description: Forbidden
  */

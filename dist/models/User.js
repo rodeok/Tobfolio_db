@@ -56,6 +56,20 @@ const userSchema = new mongoose_1.Schema({
         type: String,
         required: false,
     },
+    role: {
+        type: String,
+        enum: ['LANDLORD', 'MANAGER', 'CARETAKER'],
+        default: 'LANDLORD',
+    },
+    landlordId: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: 'User',
+        default: null,
+    },
+    adminPrivilege: {
+        type: Boolean,
+        default: false,
+    },
     isActive: {
         type: Boolean,
         default: true,
