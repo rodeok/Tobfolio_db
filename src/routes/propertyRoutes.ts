@@ -60,6 +60,11 @@ router.get('/', getProperties);
  *                 type: string
  *               units:
  *                 type: number
+ *               propertyImages:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: uri
  *     responses:
  *       201:
  *         description: Property created successfully
