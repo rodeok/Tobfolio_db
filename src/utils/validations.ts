@@ -1,5 +1,8 @@
 import { z } from 'zod';
 
+// Helper for MongoDB ObjectId validation
+const objectIdSchema = z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid ID format');
+
 export const signupSchema = z.object({
     name: z.string().min(2, 'Name must be at least 2 characters').max(50, 'Name must be less than 50 characters'),
     email: z.string().email('Invalid email address'),
@@ -24,10 +27,25 @@ export const propertySchema = z.object({
 });
 
 export const maintenanceSchema = z.object({
-    propertyId: z.string().min(1, 'Property ID is required'),
+    propertyId: objectIdSchema,
     type: z.string().min(1, 'Maintenance type is required'),
     cost: z.coerce.number().nonnegative('Cost must be positive'),
     description: z.string().min(5, 'Description is required (min 5 chars)').max(500, 'Description too long'),
     status: z.enum(['Pending', 'In Progress', 'Completed', 'Cancelled']).optional(),
     date: z.string().or(z.date()).optional(),
+});
+
+export const tenantSchema = z.object({
+    name: z.string().min(2, 'Name is required'),
+    email: z.string().email('Invalid email address'),
+    phone: z.string().min(5, 'Phone number is required'),
+    propertyId: objectIdSchema,
+    unitNumber: z.string().min(1, 'Unit number is required'),
+    rentAmount: z.coerce.number().positive('Rent amount must be positive'),
+    rentStart: z.string().or(z.date()),
+    rentEnd: z.string().or(z.date()),
+    rentDuration: z.string().min(1, 'Rent duration is required'),
+    paymentFrequency: z.enum(['monthly', 'yearly']),
+    image: z.string().url().optional(),
+    notes: z.string().optional(),
 });
