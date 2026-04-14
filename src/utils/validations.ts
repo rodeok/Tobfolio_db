@@ -26,7 +26,7 @@ export const propertySchema = z.object({
 export const maintenanceSchema = z.object({
     propertyId: z.string().min(1, 'Property ID is required'),
     type: z.string().min(1, 'Maintenance type is required'),
-    cost: z.number().nonnegative('Cost must be positive'),
+    cost: z.coerce.number().nonnegative('Cost must be positive'),
     description: z.string().min(5, 'Description is required (min 5 chars)').max(500, 'Description too long'),
     status: z.enum(['Pending', 'In Progress', 'Completed', 'Cancelled']).optional(),
     date: z.string().or(z.date()).optional(),

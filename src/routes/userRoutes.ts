@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { updateProfile, updatePassword, deleteAccount } from '../controllers/userController.js';
+import { updateProfile, updatePassword, deleteAccount, updateCurrency } from '../controllers/userController.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 
 const router = Router();
@@ -32,6 +32,13 @@ router.use(authMiddleware);
  *                 type: string
  *               email:
  *                 type: string
+ *               phone:
+ *                 type: string
+ *               about:
+ *                 type: string
+ *               currency:
+ *                 type: string
+ *                 enum: [USD, EUR, GBP, NGN, CAD, GHS, RWF]
  *     responses:
  *       200:
  *         description: Profile updated successfully
@@ -87,5 +94,35 @@ router.put('/password', updatePassword);
  *         description: Unauthorized
  */
 router.delete('/delete', deleteAccount);
+
+/**
+ * @swagger
+ * /api/v1/user/currency:
+ *   put:
+ *     summary: Update user preferred currency
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - currency
+ *             properties:
+ *               currency:
+ *                 type: string
+ *                 enum: [USD, EUR, GBP, NGN, CAD, GHS, RWF]
+ *     responses:
+ *       200:
+ *         description: Currency updated successfully
+ *       400:
+ *         description: Invalid currency
+ *       401:
+ *         description: Unauthorized
+ */
+router.put('/currency', updateCurrency);
 
 export default router;

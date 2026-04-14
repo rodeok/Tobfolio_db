@@ -36,7 +36,7 @@ const maintenanceSchema = new Schema<IMaintenance>({
     },
     status: {
         type: String,
-        default: 'Completed',
+        default: 'Pending',
     },
     date: {
         type: Date,

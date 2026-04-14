@@ -36,7 +36,10 @@ export const createMaintenanceRecord = async (req: AuthRequest, res: Response) =
         res.status(201).json(maintenance);
     } catch (error: any) {
         if (error.name === 'ZodError') {
-            return res.status(400).json({ message: error.errors[0].message });
+            return res.status(400).json({ 
+                message: 'Validation failed', 
+                errors: error.errors.map((e: any) => e.message) 
+            });
         }
         console.error('Maintenance creation error:', error);
         res.status(500).json({ message: 'Error creating maintenance record' });

@@ -88,3 +88,30 @@ export const deleteAccount = async (req: AuthRequest, res: Response) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 };
+
+export const updateCurrency = async (req: AuthRequest, res: Response) => {
+    try {
+        const { currency } = req.body;
+        const supportedCurrencies = ['USD', 'EUR', 'GBP', 'NGN', 'CAD', 'GHS', 'RWF'];
+
+        if (!currency || !supportedCurrencies.includes(currency)) {
+            return res.status(400).json({ message: 'Invalid or missing currency' });
+        }
+
+        const user = await User.findById(req.user?.userId);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        user.currency = currency as any;
+        await user.save();
+
+        res.json({
+            message: 'Currency updated successfully',
+            currency: user.currency
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};

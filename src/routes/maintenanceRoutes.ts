@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { getMaintenanceRecords, createMaintenanceRecord, getMaintenanceRecord } from '../controllers/maintenanceController';
-import { authMiddleware } from '../middleware/authMiddleware';
+import { getMaintenanceRecords, createMaintenanceRecord, getMaintenanceRecord } from '../controllers/maintenanceController.js';
+import { authMiddleware } from '../middleware/authMiddleware.js';
 
 const router = Router();
 
@@ -58,7 +58,7 @@ router.get('/', getMaintenanceRecords);
  *                 type: number
  *               status:
  *                 type: string
- *                 enum: [PENDING, IN_PROGRESS, COMPLETED]
+ *                 enum: [Pending, In Progress, Completed, Cancelled]
  *     responses:
  *       201:
  *         description: Maintenance record created successfully

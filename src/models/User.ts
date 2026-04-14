@@ -16,6 +16,7 @@ export interface IUser extends Document {
     referralPoints: number;
     resetPasswordToken?: string;
     resetPasswordExpires?: Date;
+    currency: 'USD' | 'EUR' | 'GBP' | 'NGN' | 'CAD' | 'GHS' | 'RWF';
     createdAt: Date;
 }
 
@@ -79,6 +80,11 @@ const userSchema = new Schema<IUser>({
     },
     resetPasswordToken: String,
     resetPasswordExpires: Date,
+    currency: {
+        type: String,
+        enum: ['USD', 'EUR', 'GBP', 'NGN', 'CAD', 'GHS', 'RWF'],
+        default: 'USD',
+    },
     createdAt: {
         type: Date,
         default: Date.now,
