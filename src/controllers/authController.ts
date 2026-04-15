@@ -26,19 +26,20 @@ export const googleLogin = async (req: Request, res: Response) => {
         }
 
         const payload = await response.json();
-
         const { email, name, sub: googleId } = payload;
+        const normalizedEmail = email.toLowerCase();
 
-        let user = await User.findOne({ email });
+        let user = await User.findOne({ email: normalizedEmail });
 
         if (!user) {
             // Create new user if not exists
             user = new User({
                 name,
-                email,
+                email: normalizedEmail,
                 password: await bcrypt.hash(Math.random().toString(36).slice(-8), 12), // Random password
                 googleId,
                 isVerified: true, // Google emails are verified
+                role: 'LANDLORD', // Default for Google login
             });
             await user.save();
         }
@@ -59,8 +60,8 @@ export const googleLogin = async (req: Request, res: Response) => {
 export const register = async (req: Request, res: Response) => {
     try {
         const validatedData = signupSchema.parse(req.body);
-        const { name, email, password, phone } = validatedData;
-        const { referralCode: usedReferralCode } = req.body;
+        const { name, password, phone, role, referralCode: usedReferralCode } = validatedData;
+        const email = validatedData.email.toLowerCase();
 
         const existingUser = await User.findOne({ email });
         if (existingUser) {
@@ -70,6 +71,11 @@ export const register = async (req: Request, res: Response) => {
         // Generate a unique referral code for the new user
         const newReferralCode = crypto.randomBytes(4).toString('hex').toUpperCase(); // e.g. A3F2C1B9
 
+        // Normalize role
+        const userRole = (role && typeof role === 'string') 
+            ? role.toUpperCase() as any 
+            : 'LANDLORD';
+
         const hashedPassword = await bcrypt.hash(password, 12);
         const user = new User({
             name,
@@ -77,6 +83,8 @@ export const register = async (req: Request, res: Response) => {
             password: hashedPassword,
             phone,
             referralCode: newReferralCode,
+            role: userRole,
+            adminPrivilege: userRole === 'ADMIN',
         });
 
         // If a referral code was provided, credit the referrer
@@ -97,9 +105,16 @@ export const register = async (req: Request, res: Response) => {
         });
     } catch (error: any) {
         if (error.name === 'ZodError') {
-            return res.status(400).json({ message: error.errors[0].message });
+            return res.status(400).json({ 
+                message: error.errors[0].message,
+                details: error.errors 
+            });
         }
-        console.error('Registration error:', error);
+        console.error('Registration error detail:', {
+            error: error.message,
+            stack: error.stack,
+            body: { ...req.body, password: '[REDACTED]' }
+        });
         res.status(500).json({ message: 'Internal server error' });
     }
 };
@@ -107,10 +122,12 @@ export const register = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
     try {
         const validatedData = loginSchema.parse(req.body);
-        const { email, password } = validatedData;
+        const { password } = validatedData;
+        const email = validatedData.email.toLowerCase();
 
         const user = await User.findOne({ email });
         if (!user || !user.password) {
+            console.log(`Login failed: User not found or no password for ${email}`);
             return res.status(400).json({ message: 'Invalid credentials' });
         }
 
