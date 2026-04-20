@@ -60,15 +60,17 @@ const googleLogin = async (req, res) => {
         }
         const payload = await response.json();
         const { email, name, sub: googleId } = payload;
-        let user = await User_js_1.default.findOne({ email });
+        const normalizedEmail = email.toLowerCase();
+        let user = await User_js_1.default.findOne({ email: normalizedEmail });
         if (!user) {
             // Create new user if not exists
             user = new User_js_1.default({
                 name,
-                email,
+                email: normalizedEmail,
                 password: await bcryptjs_1.default.hash(Math.random().toString(36).slice(-8), 12), // Random password
                 googleId,
                 isVerified: true, // Google emails are verified
+                role: 'LANDLORD', // Default for Google login
             });
             await user.save();
         }
@@ -84,14 +86,18 @@ exports.googleLogin = googleLogin;
 const register = async (req, res) => {
     try {
         const validatedData = validations_js_1.signupSchema.parse(req.body);
-        const { name, email, password, phone } = validatedData;
-        const { referralCode: usedReferralCode } = req.body;
+        const { name, password, phone, role, referralCode: usedReferralCode } = validatedData;
+        const email = validatedData.email.toLowerCase();
         const existingUser = await User_js_1.default.findOne({ email });
         if (existingUser) {
             return res.status(400).json({ message: 'User already exists' });
         }
         // Generate a unique referral code for the new user
         const newReferralCode = crypto.randomBytes(4).toString('hex').toUpperCase(); // e.g. A3F2C1B9
+        // Normalize role
+        const userRole = (role && typeof role === 'string')
+            ? role.toUpperCase()
+            : 'LANDLORD';
         const hashedPassword = await bcryptjs_1.default.hash(password, 12);
         const user = new User_js_1.default({
             name,
@@ -99,6 +105,8 @@ const register = async (req, res) => {
             password: hashedPassword,
             phone,
             referralCode: newReferralCode,
+            role: userRole,
+            adminPrivilege: userRole === 'ADMIN',
         });
         // If a referral code was provided, credit the referrer
         if (usedReferralCode) {
@@ -117,9 +125,16 @@ const register = async (req, res) => {
     }
     catch (error) {
         if (error.name === 'ZodError') {
-            return res.status(400).json({ message: error.errors[0].message });
+            return res.status(400).json({
+                message: error.errors[0].message,
+                details: error.errors
+            });
         }
-        console.error('Registration error:', error);
+        console.error('Registration error detail:', {
+            error: error.message,
+            stack: error.stack,
+            body: { ...req.body, password: '[REDACTED]' }
+        });
         res.status(500).json({ message: 'Internal server error' });
     }
 };
@@ -127,9 +142,11 @@ exports.register = register;
 const login = async (req, res) => {
     try {
         const validatedData = validations_js_1.loginSchema.parse(req.body);
-        const { email, password } = validatedData;
+        const { password } = validatedData;
+        const email = validatedData.email.toLowerCase();
         const user = await User_js_1.default.findOne({ email });
         if (!user || !user.password) {
+            console.log(`Login failed: User not found or no password for ${email}`);
             return res.status(400).json({ message: 'Invalid credentials' });
         }
         const isMatch = await bcryptjs_1.default.compare(password, user.password);

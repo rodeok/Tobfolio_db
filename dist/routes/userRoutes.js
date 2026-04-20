@@ -30,6 +30,13 @@ router.use(authMiddleware_js_1.authMiddleware);
  *                 type: string
  *               email:
  *                 type: string
+ *               phone:
+ *                 type: string
+ *               about:
+ *                 type: string
+ *               currency:
+ *                 type: string
+ *                 enum: [USD, EUR, GBP, NGN, CAD, GHS, RWF]
  *     responses:
  *       200:
  *         description: Profile updated successfully
@@ -83,4 +90,33 @@ router.put('/password', userController_js_1.updatePassword);
  *         description: Unauthorized
  */
 router.delete('/delete', userController_js_1.deleteAccount);
+/**
+ * @swagger
+ * /api/v1/user/currency:
+ *   put:
+ *     summary: Update user preferred currency
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - currency
+ *             properties:
+ *               currency:
+ *                 type: string
+ *                 enum: [USD, EUR, GBP, NGN, CAD, GHS, RWF]
+ *     responses:
+ *       200:
+ *         description: Currency updated successfully
+ *       400:
+ *         description: Invalid currency
+ *       401:
+ *         description: Unauthorized
+ */
+router.put('/currency', userController_js_1.updateCurrency);
 exports.default = router;

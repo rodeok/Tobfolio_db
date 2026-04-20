@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const maintenanceController_1 = require("../controllers/maintenanceController");
-const authMiddleware_1 = require("../middleware/authMiddleware");
+const maintenanceController_js_1 = require("../controllers/maintenanceController.js");
+const authMiddleware_js_1 = require("../middleware/authMiddleware.js");
 const router = (0, express_1.Router)();
 /**
  * @swagger
@@ -10,7 +10,7 @@ const router = (0, express_1.Router)();
  *   name: Maintenance
  *   description: Maintenance record management
  */
-router.use(authMiddleware_1.authMiddleware);
+router.use(authMiddleware_js_1.authMiddleware);
 /**
  * @swagger
  * /api/v1/maintenance:
@@ -25,7 +25,7 @@ router.use(authMiddleware_1.authMiddleware);
  *       401:
  *         description: Unauthorized
  */
-router.get('/', maintenanceController_1.getMaintenanceRecords);
+router.get('/', maintenanceController_js_1.getMaintenanceRecords);
 /**
  * @swagger
  * /api/v1/maintenance:
@@ -55,14 +55,14 @@ router.get('/', maintenanceController_1.getMaintenanceRecords);
  *                 type: number
  *               status:
  *                 type: string
- *                 enum: [PENDING, IN_PROGRESS, COMPLETED]
+ *                 enum: [Pending, In Progress, Completed, Cancelled]
  *     responses:
  *       201:
  *         description: Maintenance record created successfully
  *       401:
  *         description: Unauthorized
  */
-router.post('/', maintenanceController_1.createMaintenanceRecord);
+router.post('/', maintenanceController_js_1.createMaintenanceRecord);
 /**
  * @swagger
  * /api/v1/maintenance/{id}:
@@ -83,5 +83,5 @@ router.post('/', maintenanceController_1.createMaintenanceRecord);
  *       404:
  *         description: Maintenance record not found
  */
-router.get('/:id', maintenanceController_1.getMaintenanceRecord);
+router.get('/:id', maintenanceController_js_1.getMaintenanceRecord);
 exports.default = router;

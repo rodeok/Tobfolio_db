@@ -88,11 +88,30 @@ router.post('/login', validate(loginSchema), login);
  *             properties:
  *               token:
  *                 type: string
+ *                 description: Google access token
  *     responses:
  *       200:
  *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     email:
+ *                       type: string
  *       401:
  *         description: Unauthorized
+ *       400:
+ *         description: Invalid Google token
  */
 router.post('/google', googleLogin); // Google login might have different validation
 
@@ -163,6 +182,34 @@ router.post('/forgot-password', validate(forgotPasswordSchema), forgotPassword);
  *         description: Invalid or expired token
  */
 router.post('/reset-password', validate(resetPasswordSchema), resetPassword);
+/**
+ * @swagger
+ * /api/v1/auth/accept-invite:
+ *   post:
+ *     summary: Accept a team invitation
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [token, name, password]
+ *             properties:
+ *               token:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Account created successfully
+ *       400:
+ *         description: Invalid or expired invitation
+ *       404:
+ *         description: Invitation not found
+ */
 router.post('/accept-invite', acceptInvite);
 
 export default router;

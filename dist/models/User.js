@@ -58,7 +58,7 @@ const userSchema = new mongoose_1.Schema({
     },
     role: {
         type: String,
-        enum: ['LANDLORD', 'MANAGER', 'CARETAKER'],
+        enum: ['LANDLORD', 'MANAGER', 'CARETAKER', 'TENANT', 'ADMIN'],
         default: 'LANDLORD',
     },
     landlordId: {
@@ -94,6 +94,11 @@ const userSchema = new mongoose_1.Schema({
     },
     resetPasswordToken: String,
     resetPasswordExpires: Date,
+    currency: {
+        type: String,
+        enum: ['USD', 'EUR', 'GBP', 'NGN', 'CAD', 'GHS', 'RWF'],
+        default: 'USD',
+    },
     createdAt: {
         type: Date,
         default: Date.now,

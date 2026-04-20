@@ -45,7 +45,28 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.set('trust proxy', 1); // Trust first proxy
 app.use((0, cors_1.default)());
-app.use(express_1.default.json());
+app.use(express_1.default.json({
+    verify: (req, res, buf) => {
+        req.rawBody = buf.toString();
+    }
+}));
+// Custom JSON error handler to catch SyntaxErrors from body-parser
+app.use((err, req, res, next) => {
+    if (err instanceof SyntaxError && 'status' in err && err.status === 400 && 'body' in err) {
+        console.error(`[${new Date().toISOString()}] JSON Parsing Error: ${err.message}`);
+        console.error(`Request URL: ${req.url}`);
+        if (req.rawBody) {
+            console.error(`Raw Body: ${req.rawBody}`);
+        }
+        return res.status(400).json({
+            success: false,
+            message: 'Malformed JSON payload. Please ensure property names are double-quoted and there are no trailing commas.',
+            error: err.message,
+            rawBody: req.rawBody // Sending it back in dev for easier debugging
+        });
+    }
+    next(err);
+});
 // Global logger for Render debugging
 app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);

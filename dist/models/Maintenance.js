@@ -59,7 +59,7 @@ const maintenanceSchema = new mongoose_1.Schema({
     },
     status: {
         type: String,
-        default: 'Completed',
+        default: 'Pending',
     },
     date: {
         type: Date,

@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getMaintenanceRecord = exports.createMaintenanceRecord = exports.getMaintenanceRecords = void 0;
+const zod_1 = require("zod");
 const Maintenance_js_1 = __importDefault(require("../models/Maintenance.js"));
 const validations_js_1 = require("../utils/validations.js");
 const getMaintenanceRecords = async (req, res) => {
@@ -31,8 +32,21 @@ const createMaintenanceRecord = async (req, res) => {
         res.status(201).json(maintenance);
     }
     catch (error) {
-        if (error.name === 'ZodError') {
-            return res.status(400).json({ message: error.errors[0].message });
+        if (error instanceof zod_1.ZodError || error.name === 'ZodError') {
+            return res.status(400).json({
+                message: 'Validation failed',
+                errors: error.errors.map((e) => e.message)
+            });
+        }
+        if (error.name === 'CastError') {
+            return res.status(400).json({
+                message: `Invalid value for field: ${error.path}`
+            });
+        }
+        if (error.name === 'ValidationError') {
+            return res.status(400).json({
+                message: error.message
+            });
         }
         console.error('Maintenance creation error:', error);
         res.status(500).json({ message: 'Error creating maintenance record' });

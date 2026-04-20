@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import { ZodError } from 'zod';
 import Maintenance from '../models/Maintenance.js';
 import { maintenanceSchema } from '../utils/validations.js';
 import { Request } from 'express';
@@ -35,10 +36,20 @@ export const createMaintenanceRecord = async (req: AuthRequest, res: Response) =
         await maintenance.save();
         res.status(201).json(maintenance);
     } catch (error: any) {
-        if (error.name === 'ZodError') {
+        if (error instanceof ZodError || error.name === 'ZodError') {
             return res.status(400).json({ 
                 message: 'Validation failed', 
                 errors: error.errors.map((e: any) => e.message) 
+            });
+        }
+        if (error.name === 'CastError') {
+            return res.status(400).json({ 
+                message: `Invalid value for field: ${error.path}` 
+            });
+        }
+        if (error.name === 'ValidationError') {
+            return res.status(400).json({ 
+                message: error.message 
             });
         }
         console.error('Maintenance creation error:', error);

@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteAccount = exports.updatePassword = exports.updateProfile = void 0;
+exports.updateCurrency = exports.deleteAccount = exports.updatePassword = exports.updateProfile = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const User_js_1 = __importDefault(require("../models/User.js"));
 const updateProfile = async (req, res) => {
@@ -75,3 +75,26 @@ const deleteAccount = async (req, res) => {
     }
 };
 exports.deleteAccount = deleteAccount;
+const updateCurrency = async (req, res) => {
+    try {
+        const { currency } = req.body;
+        const supportedCurrencies = ['USD', 'EUR', 'GBP', 'NGN', 'CAD', 'GHS', 'RWF'];
+        if (!currency || !supportedCurrencies.includes(currency)) {
+            return res.status(400).json({ message: 'Invalid or missing currency' });
+        }
+        const user = await User_js_1.default.findById(req.user?.userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        user.currency = currency;
+        await user.save();
+        res.json({
+            message: 'Currency updated successfully',
+            currency: user.currency
+        });
+    }
+    catch (error) {
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+exports.updateCurrency = updateCurrency;

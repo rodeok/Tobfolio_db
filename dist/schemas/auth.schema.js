@@ -7,25 +7,25 @@ exports.registerSchema = zod_1.z.object({
         name: zod_1.z.string().min(2, 'Name must be at least 2 characters'),
         email: zod_1.z.string().email('Invalid email address'),
         password: zod_1.z.string().min(6, 'Password must be at least 6 characters'),
-        role: zod_1.z.enum(['tenant', 'landlord', 'admin']).optional(),
+        role: zod_1.z.enum(['LANDLORD', 'MANAGER', 'CARETAKER', 'TENANT', 'ADMIN', 'landlord', 'tenant', 'admin']).optional(),
         phone: zod_1.z.string().optional(),
         referralCode: zod_1.z.string().optional(),
-    }).strict(),
+    }),
 });
 exports.loginSchema = zod_1.z.object({
     body: zod_1.z.object({
         email: zod_1.z.string().email('Invalid email address'),
         password: zod_1.z.string().min(1, 'Password is required'),
-    }).strict(),
+    }),
 });
 exports.forgotPasswordSchema = zod_1.z.object({
     body: zod_1.z.object({
         email: zod_1.z.string().email('Invalid email address'),
-    }).strict(),
+    }),
 });
 exports.resetPasswordSchema = zod_1.z.object({
     body: zod_1.z.object({
         token: zod_1.z.string().min(1, 'Token is required'),
         password: zod_1.z.string().min(6, 'Password must be at least 6 characters'),
-    }).strict(),
+    }),
 });
