@@ -9,6 +9,20 @@ interface AuthRequest extends Request {
     };
 }
 
+export const getProfile = async (req: AuthRequest, res: Response) => {
+    try {
+        const user = await User.findById(req.user?.userId).select('-password');
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.json(user);
+    } catch (error) {
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
 export const updateProfile = async (req: AuthRequest, res: Response) => {
     try {
         const { name, phone, about, email } = req.body;
@@ -38,7 +52,8 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
                 name: user.name,
                 email: user.email,
                 phone: user.phone,
-                about: user.about
+                about: user.about,
+                currency: user.currency
             }
         });
     } catch (error) {

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { updateProfile, updatePassword, deleteAccount, updateCurrency } from '../controllers/userController.js';
+import { getProfile, updateProfile, updatePassword, deleteAccount, updateCurrency } from '../controllers/userController.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 
 const router = Router();
@@ -12,6 +12,26 @@ const router = Router();
  */
 
 router.use(authMiddleware);
+
+/**
+ * @swagger
+ * /api/v1/user/profile:
+ *   get:
+ *     summary: Get user profile
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User profile data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Unauthorized
+ */
+router.get('/profile', getProfile);
 
 /**
  * @swagger
@@ -42,6 +62,15 @@ router.use(authMiddleware);
  *     responses:
  *       200:
  *         description: Profile updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
  *       401:
  *         description: Unauthorized
  */

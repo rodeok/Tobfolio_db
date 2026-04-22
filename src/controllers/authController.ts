@@ -50,7 +50,7 @@ export const googleLogin = async (req: Request, res: Response) => {
             { expiresIn: '1h' }
         );
 
-        res.json({ token: jwtToken, user: { id: user._id, name: user.name, email: user.email } });
+        res.json({ token: jwtToken, user: { id: user._id, name: user.name, email: user.email, currency: user.currency } });
     } catch (error) {
         console.error('Google login error:', error);
         res.status(500).json({ message: 'Google login failed' });
@@ -142,7 +142,7 @@ export const login = async (req: Request, res: Response) => {
             { expiresIn: '1h' }
         );
 
-        res.json({ token, user: { id: user._id, name: user.name, email: user.email } });
+        res.json({ token, user: { id: user._id, name: user.name, email: user.email, currency: user.currency } });
     } catch (error: any) {
         if (error.name === 'ZodError') {
             return res.status(400).json({ message: error.errors[0].message });
@@ -288,6 +288,7 @@ export const acceptInvite = async (req: Request, res: Response) => {
                 name: newUser.name,
                 email: newUser.email,
                 role: newUser.role,
+                currency: newUser.currency,
             }
         });
     } catch (error) {

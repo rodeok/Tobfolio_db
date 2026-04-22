@@ -19,6 +19,22 @@ const router = Router();
  *     responses:
  *       200:
  *         description: Exchange rate data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 rates:
+ *                   type: object
+ *                   additionalProperties:
+ *                     type: number
+ *                 cached:
+ *                   type: boolean
+ *                 lastUpdated:
+ *                   type: string
+ *                   format: date-time
  */
 router.get('/', getExchangeRates);
 

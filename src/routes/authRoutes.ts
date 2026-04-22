@@ -66,6 +66,25 @@ router.post('/register', validate(registerSchema), register);
  *     responses:
  *       200:
  *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     currency:
+ *                       type: string
+ *                       enum: [USD, EUR, GBP, NGN, CAD, GHS, RWF]
  *       401:
  *         description: Unauthorized
  */
@@ -108,6 +127,9 @@ router.post('/login', validate(loginSchema), login);
  *                       type: string
  *                     email:
  *                       type: string
+ *                     currency:
+ *                       type: string
+ *                       enum: [USD, EUR, GBP, NGN, CAD, GHS, RWF]
  *       401:
  *         description: Unauthorized
  *       400:
@@ -205,6 +227,27 @@ router.post('/reset-password', validate(resetPasswordSchema), resetPassword);
  *     responses:
  *       201:
  *         description: Account created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     role:
+ *                       type: string
+ *                     currency:
+ *                       type: string
+ *                       enum: [USD, EUR, GBP, NGN, CAD, GHS, RWF]
  *       400:
  *         description: Invalid or expired invitation
  *       404:
