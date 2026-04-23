@@ -14,6 +14,25 @@ router.use(authMiddleware_js_1.authMiddleware);
 /**
  * @swagger
  * /api/v1/user/profile:
+ *   get:
+ *     summary: Get user profile
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User profile data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Unauthorized
+ */
+router.get('/profile', userController_js_1.getProfile);
+/**
+ * @swagger
+ * /api/v1/user/profile:
  *   put:
  *     summary: Update user profile
  *     tags: [User]
@@ -40,6 +59,15 @@ router.use(authMiddleware_js_1.authMiddleware);
  *     responses:
  *       200:
  *         description: Profile updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
  *       401:
  *         description: Unauthorized
  */

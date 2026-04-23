@@ -3,9 +3,22 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateCurrency = exports.deleteAccount = exports.updatePassword = exports.updateProfile = void 0;
+exports.updateCurrency = exports.deleteAccount = exports.updatePassword = exports.updateProfile = exports.getProfile = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const User_js_1 = __importDefault(require("../models/User.js"));
+const getProfile = async (req, res) => {
+    try {
+        const user = await User_js_1.default.findById(req.user?.userId).select('-password');
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.json(user);
+    }
+    catch (error) {
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+exports.getProfile = getProfile;
 const updateProfile = async (req, res) => {
     try {
         const { name, phone, about, email } = req.body;
@@ -30,7 +43,8 @@ const updateProfile = async (req, res) => {
                 name: user.name,
                 email: user.email,
                 phone: user.phone,
-                about: user.about
+                about: user.about,
+                currency: user.currency
             }
         });
     }

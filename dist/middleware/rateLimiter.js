@@ -21,8 +21,8 @@ exports.generalLimiter = (0, express_rate_limit_1.default)({
     }),
     keyGenerator: (req) => {
         // Use user ID if authenticated, otherwise request IP
-        if (req.user && req.user.id) {
-            return req.user.id;
+        if (req.user && req.user.userId) {
+            return req.user.userId;
         }
         return req['ip'] || 'unknown-ip'; // Fallback for IP
     },
@@ -50,8 +50,8 @@ exports.authLimiter = (0, express_rate_limit_1.default)({
     }),
     keyGenerator: (req) => {
         // Use user ID if authenticated, otherwise request IP
-        if (req.user && req.user.id) {
-            return req.user.id;
+        if (req.user && req.user.userId) {
+            return req.user.userId;
         }
         return req['ip'] || 'unknown-ip';
     },

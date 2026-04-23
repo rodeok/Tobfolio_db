@@ -75,7 +75,7 @@ const googleLogin = async (req, res) => {
             await user.save();
         }
         const jwtToken = jsonwebtoken_1.default.sign({ userId: user._id }, process.env.JWT_SECRET || 'secret', { expiresIn: '1h' });
-        res.json({ token: jwtToken, user: { id: user._id, name: user.name, email: user.email } });
+        res.json({ token: jwtToken, user: { id: user._id, name: user.name, email: user.email, currency: user.currency } });
     }
     catch (error) {
         console.error('Google login error:', error);
@@ -154,7 +154,7 @@ const login = async (req, res) => {
             return res.status(400).json({ message: 'Invalid credentials' });
         }
         const token = jsonwebtoken_1.default.sign({ userId: user._id }, process.env.JWT_SECRET || 'secret', { expiresIn: '1h' });
-        res.json({ token, user: { id: user._id, name: user.name, email: user.email } });
+        res.json({ token, user: { id: user._id, name: user.name, email: user.email, currency: user.currency } });
     }
     catch (error) {
         if (error.name === 'ZodError') {
@@ -281,6 +281,7 @@ const acceptInvite = async (req, res) => {
                 name: newUser.name,
                 email: newUser.email,
                 role: newUser.role,
+                currency: newUser.currency,
             }
         });
     }

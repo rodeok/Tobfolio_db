@@ -18,6 +18,22 @@ const router = (0, express_1.Router)();
  *     responses:
  *       200:
  *         description: Exchange rate data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 rates:
+ *                   type: object
+ *                   additionalProperties:
+ *                     type: number
+ *                 cached:
+ *                   type: boolean
+ *                 lastUpdated:
+ *                   type: string
+ *                   format: date-time
  */
 router.get('/', exchangeRateController_js_1.getExchangeRates);
 exports.default = router;

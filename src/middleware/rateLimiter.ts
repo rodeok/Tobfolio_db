@@ -18,8 +18,8 @@ export const generalLimiter = rateLimit({
     }),
     keyGenerator: (req: Request) => {
         // Use user ID if authenticated, otherwise request IP
-        if ((req as any).user && (req as any).user.id) {
-            return (req as any).user.id;
+        if ((req as any).user && (req as any).user.userId) {
+            return (req as any).user.userId;
         }
         return req['ip'] || 'unknown-ip'; // Fallback for IP
     },
@@ -48,8 +48,8 @@ export const authLimiter = rateLimit({
     }),
     keyGenerator: (req: Request) => {
         // Use user ID if authenticated, otherwise request IP
-        if ((req as any).user && (req as any).user.id) {
-            return (req as any).user.id;
+        if ((req as any).user && (req as any).user.userId) {
+            return (req as any).user.userId;
         }
         return req['ip'] || 'unknown-ip';
     },
