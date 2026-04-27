@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { register, login, googleLogin, forgotPassword, resetPassword, acceptInvite } from '../controllers/authController.js';
+import { register, login, googleLogin, googleMobileLogin, forgotPassword, resetPassword, acceptInvite } from '../controllers/authController.js';
 import { validate } from '../middleware/validationMiddleware.js';
 import { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema } from '../schemas/auth.schema.js';
 
@@ -136,6 +136,49 @@ router.post('/login', validate(loginSchema), login);
  *         description: Invalid Google token
  */
 router.post('/google', googleLogin); // Google login might have different validation
+/**
+ * @swagger
+ * /api/v1/auth/google-mobile:
+ *   post:
+ *     summary: Login with Google (Mobile)
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - idToken
+ *             properties:
+ *               idToken:
+ *                 type: string
+ *                 description: Google ID token from mobile app
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     currency:
+ *                       type: string
+ *       400:
+ *         description: Invalid Google ID token
+ */
+router.post('/google-mobile', googleMobileLogin);
 
 /**
  * @swagger

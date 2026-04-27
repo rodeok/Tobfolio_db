@@ -57,6 +57,89 @@ export const googleLogin = async (req: Request, res: Response) => {
     }
 };
 
+export const googleMobileLogin = async (req: Request, res: Response) => {
+    try {
+        const { idToken } = req.body;
+
+        if (!idToken) {
+            return res.status(400).json({ message: 'ID Token is required' });
+        }
+
+        let ticket;
+        try {
+            ticket = await client.verifyIdToken({
+                idToken,
+                audience: [
+                    process.env.GOOGLE_CLIENT_ID || '',
+                    process.env.GOOGLE_MOBILE_CLIENT_ID || '',
+                ].filter(id => id !== ''),
+            });
+        } catch (tokenError) {
+            return res.status(400).json({ message: 'Invalid Google ID Token' });
+        }
+
+        const payload = ticket.getPayload();
+        if (!payload) {
+            return res.status(400).json({ message: 'Invalid Google ID Token' });
+        }
+
+        const { email, name, sub: googleId } = payload;
+        if (!email) {
+            return res.status(400).json({ message: 'Email not provided by Google' });
+        }
+
+        const normalizedEmail = email.toLowerCase();
+        let user = await User.findOne({ email: normalizedEmail });
+
+        if (!user) {
+            // Create new user if not exists
+            user = new User({
+                name: name || 'Google User',
+                email: normalizedEmail,
+                password: await bcrypt.hash(crypto.randomBytes(16).toString('hex'), 12),
+                googleId,
+                isVerified: true,
+                role: 'LANDLORD',
+            });
+            await user.save();
+        } else {
+            // Update user if they exist but don't have a googleId or aren't verified
+            let updated = false;
+            if (!user.googleId) {
+                user.googleId = googleId;
+                updated = true;
+            }
+            if (!user.isVerified) {
+                user.isVerified = true;
+                updated = true;
+            }
+            if (updated) {
+                await user.save();
+            }
+        }
+
+        const jwtToken = jwt.sign(
+            { userId: user._id },
+            process.env.JWT_SECRET || 'secret',
+            { expiresIn: '30d' } // Longer expiry for mobile apps
+        );
+
+        res.json({ 
+            token: jwtToken, 
+            user: { 
+                id: user._id, 
+                name: user.name, 
+                email: user.email, 
+                currency: user.currency 
+            } 
+        });
+    } catch (error) {
+        console.error('Google mobile login error:', error);
+        res.status(500).json({ message: 'Google login failed' });
+    }
+};
+
+
 export const register = async (req: Request, res: Response) => {
     try {
         const validatedData = signupSchema.parse(req.body);

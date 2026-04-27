@@ -17,6 +17,8 @@ export interface IUser extends Document {
     resetPasswordToken?: string;
     resetPasswordExpires?: Date;
     currency: 'USD' | 'EUR' | 'GBP' | 'NGN' | 'CAD' | 'GHS' | 'RWF';
+    googleId?: string;
+    isVerified: boolean;
     createdAt: Date;
 }
 
@@ -84,6 +86,15 @@ const userSchema = new Schema<IUser>({
         type: String,
         enum: ['USD', 'EUR', 'GBP', 'NGN', 'CAD', 'GHS', 'RWF'],
         default: 'USD',
+    },
+    googleId: {
+        type: String,
+        sparse: true,
+        unique: true,
+    },
+    isVerified: {
+        type: Boolean,
+        default: false,
     },
     createdAt: {
         type: Date,

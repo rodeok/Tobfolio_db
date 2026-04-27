@@ -9,7 +9,8 @@
         "start": "node dist/server.js",
         "test": "node src/test-ai.ts",
         "test:tenants": "tsx src/test-tenant-updates.ts",
-        "test:rewards": "tsx src/test-rewards.ts"
+        "test:rewards": "tsx src/test-rewards.ts",
+        "test:google": "tsx src/test-google-auth.ts"
     },
     "dependencies": {
         "@auth/core": "^0.34.3",
