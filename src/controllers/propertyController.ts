@@ -4,6 +4,7 @@ import User from '../models/User.js';
 import Maintenance from '../models/Maintenance.js';
 import { propertySchema } from '../utils/validations.js';
 import { Request } from 'express';
+import { calculateDashboardMetrics } from '../utils/dashboardUtils.js';
 
 interface AuthRequest extends Request {
     user?: {
@@ -79,5 +80,26 @@ export const deleteProperty = async (req: AuthRequest, res: Response) => {
         res.json({ message: 'Property deleted successfully' });
     } catch (error) {
         res.status(500).json({ message: 'Error deleting property' });
+    }
+};
+
+export const getRentalStats = async (req: AuthRequest, res: Response) => {
+    try {
+        const actingLandlordId = req.user?.landlordId || req.user?.userId;
+        if (!actingLandlordId) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
+        const metrics = await calculateDashboardMetrics(actingLandlordId);
+        
+        res.json({
+            occupancyRate: metrics.occupancyRate,
+            occupiedUnits: metrics.occupiedUnits,
+            vacantUnits: metrics.vacantUnits,
+            totalUnits: metrics.totalUnits
+        });
+    } catch (error) {
+        console.error('Error fetching rental stats:', error);
+        res.status(500).json({ message: 'Error fetching rental stats' });
     }
 };

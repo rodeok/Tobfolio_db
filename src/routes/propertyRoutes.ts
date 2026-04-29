@@ -1,9 +1,5 @@
 import { Router } from 'express';
-import { getProperties, createProperty, getProperty, deleteProperty } from '../controllers/propertyController.js';
-import Property from '../models/Property.js';
-import User from '../models/User.js';
-import Maintenance from '../models/Maintenance.js';
-import { propertySchema } from '../utils/validations.js';
+import { getProperties, createProperty, getProperty, deleteProperty, getRentalStats } from '../controllers/propertyController.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 
 const router = Router();
@@ -32,6 +28,35 @@ router.use(authMiddleware);
  *         description: Unauthorized
  */
 router.get('/', getProperties);
+
+/**
+ * @swagger
+ * /api/v1/properties/stats:
+ *   get:
+ *     summary: Get rental occupancy statistics
+ *     tags: [Properties]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Rental statistics
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 occupancyRate:
+ *                   type: number
+ *                 occupiedUnits:
+ *                   type: number
+ *                 vacantUnits:
+ *                   type: number
+ *                 totalUnits:
+ *                   type: number
+ *       401:
+ *         description: Unauthorized
+ */
+router.get('/stats', getRentalStats);
 
 /**
  * @swagger
