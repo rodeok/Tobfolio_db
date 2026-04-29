@@ -24,6 +24,23 @@ const router = express_1.default.Router();
  *     responses:
  *       200:
  *         description: Dashboard data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 userName: { type: string }
+ *                 totalIncome: { type: number }
+ *                 incomeGrowth: { type: number }
+ *                 totalRentals: { type: number }
+ *                 netBalance: { type: number }
+ *                 maintenance: { type: number }
+ *                 totalUnits: { type: number }
+ *                 occupiedUnits: { type: number }
+ *                 vacantUnits: { type: number }
+ *                 occupancyRate: { type: number }
+ *                 chartData: { type: array, items: { type: object } }
+ *                 lastUpdated: { type: string }
  *       401:
  *         description: Unauthorized
  */

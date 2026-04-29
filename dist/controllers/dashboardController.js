@@ -68,6 +68,10 @@ const getDashboardData = async (req, res) => {
             totalRentals: metrics.totalRentals,
             netBalance: metrics.netBalance,
             maintenance: metrics.maintenance,
+            totalUnits: metrics.totalUnits,
+            occupiedUnits: metrics.occupiedUnits,
+            vacantUnits: metrics.vacantUnits,
+            occupancyRate: metrics.occupancyRate,
             chartData,
             lastUpdated: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
         });

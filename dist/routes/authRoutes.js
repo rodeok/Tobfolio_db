@@ -135,6 +135,49 @@ router.post('/login', (0, validationMiddleware_js_1.validate)(auth_schema_js_1.l
 router.post('/google', authController_js_1.googleLogin); // Google login might have different validation
 /**
  * @swagger
+ * /api/v1/auth/google-mobile:
+ *   post:
+ *     summary: Login with Google (Mobile)
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - idToken
+ *             properties:
+ *               idToken:
+ *                 type: string
+ *                 description: Google ID token from mobile app
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     currency:
+ *                       type: string
+ *       400:
+ *         description: Invalid Google ID token
+ */
+router.post('/google-mobile', authController_js_1.googleMobileLogin);
+/**
+ * @swagger
  * /api/v1/auth/forgot-password:
  *   post:
  *     summary: Forgot password

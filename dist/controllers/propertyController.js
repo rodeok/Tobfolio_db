@@ -3,10 +3,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteProperty = exports.getProperty = exports.createProperty = exports.getProperties = void 0;
+exports.getRentalStats = exports.deleteProperty = exports.getProperty = exports.createProperty = exports.getProperties = void 0;
 const Property_js_1 = __importDefault(require("../models/Property.js"));
 const Maintenance_js_1 = __importDefault(require("../models/Maintenance.js"));
 const validations_js_1 = require("../utils/validations.js");
+const dashboardUtils_js_1 = require("../utils/dashboardUtils.js");
 const getProperties = async (req, res) => {
     try {
         const actingLandlordId = req.user?.landlordId || req.user?.userId;
@@ -74,3 +75,23 @@ const deleteProperty = async (req, res) => {
     }
 };
 exports.deleteProperty = deleteProperty;
+const getRentalStats = async (req, res) => {
+    try {
+        const actingLandlordId = req.user?.landlordId || req.user?.userId;
+        if (!actingLandlordId) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+        const metrics = await (0, dashboardUtils_js_1.calculateDashboardMetrics)(actingLandlordId);
+        res.json({
+            occupancyRate: metrics.occupancyRate,
+            occupiedUnits: metrics.occupiedUnits,
+            vacantUnits: metrics.vacantUnits,
+            totalUnits: metrics.totalUnits
+        });
+    }
+    catch (error) {
+        console.error('Error fetching rental stats:', error);
+        res.status(500).json({ message: 'Error fetching rental stats' });
+    }
+};
+exports.getRentalStats = getRentalStats;

@@ -28,6 +28,34 @@ router.use(authMiddleware_js_1.authMiddleware);
 router.get('/', propertyController_js_1.getProperties);
 /**
  * @swagger
+ * /api/v1/properties/stats:
+ *   get:
+ *     summary: Get rental occupancy statistics
+ *     tags: [Properties]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Rental statistics
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 occupancyRate:
+ *                   type: number
+ *                 occupiedUnits:
+ *                   type: number
+ *                 vacantUnits:
+ *                   type: number
+ *                 totalUnits:
+ *                   type: number
+ *       401:
+ *         description: Unauthorized
+ */
+router.get('/stats', propertyController_js_1.getRentalStats);
+/**
+ * @swagger
  * /api/v1/properties:
  *   post:
  *     summary: Create a new property

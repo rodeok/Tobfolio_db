@@ -99,6 +99,15 @@ const userSchema = new mongoose_1.Schema({
         enum: ['USD', 'EUR', 'GBP', 'NGN', 'CAD', 'GHS', 'RWF'],
         default: 'USD',
     },
+    googleId: {
+        type: String,
+        sparse: true,
+        unique: true,
+    },
+    isVerified: {
+        type: Boolean,
+        default: false,
+    },
     createdAt: {
         type: Date,
         default: Date.now,

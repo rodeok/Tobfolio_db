@@ -42,6 +42,10 @@ const calculateDashboardMetrics = async (userId) => {
     const expiredRent = tenants
         .filter(t => new Date(t.rentEnd) < now)
         .reduce((sum, t) => sum + calculateTotalRentSoFar(t), 0);
+    const totalUnits = properties.reduce((sum, p) => sum + (p.units || 1), 0);
+    const occupiedUnits = tenants.filter(t => t.isActive).length;
+    const vacantUnits = Math.max(0, totalUnits - occupiedUnits);
+    const occupancyRate = totalUnits > 0 ? (occupiedUnits / totalUnits) * 100 : 0;
     return {
         totalIncome: totalLifetimeIncome,
         netBalance,
@@ -50,7 +54,11 @@ const calculateDashboardMetrics = async (userId) => {
         expiredRent,
         propertiesCount: properties.length,
         tenantsCount: tenants.length,
-        activeTenantsCount: tenants.filter(t => t.isActive).length,
+        activeTenantsCount: occupiedUnits,
+        totalUnits,
+        occupiedUnits,
+        vacantUnits,
+        occupancyRate: Math.round(occupancyRate),
     };
 };
 exports.calculateDashboardMetrics = calculateDashboardMetrics;

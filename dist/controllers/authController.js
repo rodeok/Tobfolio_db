@@ -36,7 +36,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.acceptInvite = exports.resetPassword = exports.forgotPassword = exports.login = exports.register = exports.googleLogin = void 0;
+exports.acceptInvite = exports.resetPassword = exports.forgotPassword = exports.login = exports.register = exports.googleMobileLogin = exports.googleLogin = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const crypto = __importStar(require("crypto"));
@@ -83,6 +83,80 @@ const googleLogin = async (req, res) => {
     }
 };
 exports.googleLogin = googleLogin;
+const googleMobileLogin = async (req, res) => {
+    try {
+        const { idToken } = req.body;
+        if (!idToken) {
+            return res.status(400).json({ message: 'ID Token is required' });
+        }
+        let ticket;
+        try {
+            ticket = await client.verifyIdToken({
+                idToken,
+                audience: [
+                    process.env.GOOGLE_CLIENT_ID || '',
+                    process.env.GOOGLE_MOBILE_CLIENT_ID || '',
+                ].filter(id => id !== ''),
+            });
+        }
+        catch (tokenError) {
+            return res.status(400).json({ message: 'Invalid Google ID Token' });
+        }
+        const payload = ticket.getPayload();
+        if (!payload) {
+            return res.status(400).json({ message: 'Invalid Google ID Token' });
+        }
+        const { email, name, sub: googleId } = payload;
+        if (!email) {
+            return res.status(400).json({ message: 'Email not provided by Google' });
+        }
+        const normalizedEmail = email.toLowerCase();
+        let user = await User_js_1.default.findOne({ email: normalizedEmail });
+        if (!user) {
+            // Create new user if not exists
+            user = new User_js_1.default({
+                name: name || 'Google User',
+                email: normalizedEmail,
+                password: await bcryptjs_1.default.hash(crypto.randomBytes(16).toString('hex'), 12),
+                googleId,
+                isVerified: true,
+                role: 'LANDLORD',
+            });
+            await user.save();
+        }
+        else {
+            // Update user if they exist but don't have a googleId or aren't verified
+            let updated = false;
+            if (!user.googleId) {
+                user.googleId = googleId;
+                updated = true;
+            }
+            if (!user.isVerified) {
+                user.isVerified = true;
+                updated = true;
+            }
+            if (updated) {
+                await user.save();
+            }
+        }
+        const jwtToken = jsonwebtoken_1.default.sign({ userId: user._id }, process.env.JWT_SECRET || 'secret', { expiresIn: '30d' } // Longer expiry for mobile apps
+        );
+        res.json({
+            token: jwtToken,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                currency: user.currency
+            }
+        });
+    }
+    catch (error) {
+        console.error('Google mobile login error:', error);
+        res.status(500).json({ message: 'Google login failed' });
+    }
+};
+exports.googleMobileLogin = googleMobileLogin;
 const register = async (req, res) => {
     try {
         const validatedData = validations_js_1.signupSchema.parse(req.body);
