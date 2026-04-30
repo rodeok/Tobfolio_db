@@ -253,6 +253,8 @@ const forgotPassword = async (req, res) => {
         user.resetPasswordExpires = new Date(Date.now() + 3600000); // 1 hour
         await user.save();
         const resetLink = `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.tobfolio.com'}/reset-password?token=${resetToken}`;
+        // Log the reset link for development and fallback purposes
+        console.log("Password reset link:", resetLink);
         try {
             const { data, error } = await (0, notifications_js_1.sendEmail)({
                 to: email,
@@ -299,7 +301,7 @@ const resetPassword = async (req, res) => {
         const hash = crypto.createHash('sha256').update(token).digest('hex');
         const user = await User_js_1.default.findOne({
             resetPasswordToken: hash,
-            resetPasswordExpires: { $gt: Date.now() }
+            resetPasswordExpires: { $gt: new Date() }
         });
         if (!user) {
             return res.status(400).json({ message: "Invalid or expired token." });

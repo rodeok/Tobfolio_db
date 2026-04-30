@@ -49,7 +49,8 @@ export const calculateDashboardMetrics = async (userId: string) => {
     const totalUnits = properties.reduce((sum, p) => sum + (p.units || 1), 0);
     const occupiedUnits = tenants.filter(t => t.isActive).length;
     const vacantUnits = Math.max(0, totalUnits - occupiedUnits);
-    const occupancyRate = totalUnits > 0 ? (occupiedUnits / totalUnits) * 100 : 0;
+    const rawOccupancyRate = totalUnits > 0 ? (occupiedUnits / totalUnits) * 100 : 0;
+    const occupancyRate = Math.min(rawOccupancyRate, 100);
 
     return {
         totalIncome: totalLifetimeIncome,

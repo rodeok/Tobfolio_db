@@ -21,7 +21,7 @@ const getTwilio = () => {
 export const sendEmail = async ({ to, subject, html }: { to: string, subject: string, html: string }) => {
     const resend = getResend();
     return await resend.emails.send({
-        from: "Tobfolio <noreply@tobfolio.com>",
+        from: process.env.RESEND_FROM_EMAIL || "Tobfolio <noreply@tobfolio.com>",
         to: [to],
         subject,
         html,

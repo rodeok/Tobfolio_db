@@ -124,14 +124,14 @@ export const googleMobileLogin = async (req: Request, res: Response) => {
             { expiresIn: '30d' } // Longer expiry for mobile apps
         );
 
-        res.json({ 
-            token: jwtToken, 
-            user: { 
-                id: user._id, 
-                name: user.name, 
-                email: user.email, 
-                currency: user.currency 
-            } 
+        res.json({
+            token: jwtToken,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                currency: user.currency
+            }
         });
     } catch (error) {
         console.error('Google mobile login error:', error);
@@ -155,8 +155,8 @@ export const register = async (req: Request, res: Response) => {
         const newReferralCode = crypto.randomBytes(4).toString('hex').toUpperCase(); // e.g. A3F2C1B9
 
         // Normalize role
-        const userRole = (role && typeof role === 'string') 
-            ? role.toUpperCase() as any 
+        const userRole = (role && typeof role === 'string')
+            ? role.toUpperCase() as any
             : 'LANDLORD';
 
         const hashedPassword = await bcrypt.hash(password, 12);
@@ -188,9 +188,9 @@ export const register = async (req: Request, res: Response) => {
         });
     } catch (error: any) {
         if (error.name === 'ZodError') {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 message: error.errors[0].message,
-                details: error.errors 
+                details: error.errors
             });
         }
         console.error('Registration error detail:', {
@@ -254,6 +254,9 @@ export const forgotPassword = async (req: Request, res: Response) => {
 
         const resetLink = `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.tobfolio.com'}/reset-password?token=${resetToken}`;
 
+        // Log the reset link for development and fallback purposes
+        console.log("Password reset link:", resetLink);
+
         try {
             const { data, error } = await sendEmail({
                 to: email,
@@ -300,7 +303,7 @@ export const resetPassword = async (req: Request, res: Response) => {
 
         const user = await User.findOne({
             resetPasswordToken: hash,
-            resetPasswordExpires: { $gt: Date.now() }
+            resetPasswordExpires: { $gt: new Date() }
         });
 
         if (!user) {
@@ -323,7 +326,7 @@ export const resetPassword = async (req: Request, res: Response) => {
 export const acceptInvite = async (req: Request, res: Response) => {
     try {
         const { token, name, password } = req.body;
-        
+
         const invitation = await Invitation.findOne({ token, status: 'PENDING' });
         if (!invitation) {
             return res.status(404).json({ message: 'Invitation not found or already accepted' });
@@ -341,7 +344,7 @@ export const acceptInvite = async (req: Request, res: Response) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 12);
-        
+
         const newUser = new User({
             name,
             email: invitation.email,

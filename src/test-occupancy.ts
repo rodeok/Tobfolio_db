@@ -1,124 +1,93 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-const BASE_URL = 'http://localhost:5000/api/v1';
+import mongoose from 'mongoose';
+import User from './models/User.js';
+import Property from './models/Property.js';
+import Tenant from './models/Tenant.js';
+import { calculateDashboardMetrics } from './utils/dashboardUtils.js';
 
-async function api(
-    method: string,
-    path: string,
-    body?: object,
-    token?: string
-): Promise<any> {
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (token) headers['Authorization'] = `Bearer ${token}`;
+async function runTest() {
+    console.log("Starting Occupancy Rate test...\n");
 
-    const res = await fetch(`${BASE_URL}${path}`, {
-        method,
-        headers,
-        body: body ? JSON.stringify(body) : undefined,
-    });
-
-    const text = await res.text();
-    let data: any;
-    try { data = JSON.parse(text); } catch { data = text; }
-
-    if (!res.ok) {
-        const err: any = new Error(`HTTP ${res.status}`);
-        err.status = res.status;
-        err.data = data;
-        throw err;
-    }
-    return data;
-}
-
-async function testOccupancy() {
-    console.log('\n🔵 ===== Occupancy Metrics Verification =====\n');
-
-    // 1. Register landlord
-    const landlord = {
-        name: 'Stats Landlord',
-        email: `stats${Date.now()}@test.com`,
-        password: 'password123',
-    };
-    console.log('1️⃣  Registering landlord...');
-    await api('POST', '/auth/register', landlord);
-    const loginData = await api('POST', '/auth/login', {
-        email: landlord.email,
-        password: landlord.password,
-    });
-    const token: string = loginData.token;
-    console.log('   ✅ Landlord registered & logged in.\n');
-
-    // 2. Add a property with 10 units
-    console.log('2️⃣  Creating property with 10 units...');
-    const property = await api('POST', '/properties', {
-        name: 'Ten Unit Plaza',
-        address: '123 Stats St',
-        type: 'Commercial',
-        units: 10,
-    }, token);
-    const propertyId: string = property._id;
-    console.log(`   ✅ Property created with ${property.units} units.\n`);
-
-    // 3. Check initial stats
-    console.log('3️⃣  Checking initial stats (should be 0 occupancy)...');
-    const initialStats = await api('GET', '/properties/stats', undefined, token);
-    console.log(`   Stats: ${JSON.stringify(initialStats)}`);
-    if (initialStats.totalUnits === 10 && initialStats.occupiedUnits === 0 && initialStats.vacantUnits === 10) {
-        console.log('   ✅ Initial stats correct.\n');
-    } else {
-        console.log('   ❌ Initial stats incorrect.\n');
+    if (!process.env.MONGODB_URI) {
+        console.error("❌ MONGODB_URI is missing in .env");
+        process.exit(1);
     }
 
-    // 4. Create 4 active tenants
-    console.log('4️⃣  Creating 4 active tenants...');
-    for (let i = 1; i <= 4; i++) {
-        await api('POST', '/tenants', {
-            propertyId,
+    await mongoose.connect(process.env.MONGODB_URI);
+
+    // 1. Setup a dummy landlord
+    const testEmail = `landlord_${Date.now()}@example.com`;
+    const landlord = new User({
+        name: "Test Landlord",
+        email: testEmail,
+        role: "LANDLORD",
+    });
+    await landlord.save();
+    console.log(`✅ Created test landlord ID: ${landlord._id}`);
+
+    // 2. Setup 1 Property (with only 1 unit)
+    const property = new Property({
+        landlordId: landlord._id,
+        name: "Test Villa",
+        address: "123 Test St",
+        units: 1, // Only 1 unit!
+        rentAmount: 1000,
+        type: "apartment"
+    });
+    await property.save();
+    console.log(`✅ Created 1 property with 1 unit.`);
+
+    // 3. Setup 5 active Tenants assigned to this landlord
+    // This creates an scenario where occupied units > total units
+    const tenantPromises = [];
+    for(let i = 0; i < 5; i++) {
+        tenantPromises.push(new Tenant({
+            landlordId: landlord._id,
+            propertyId: property._id,
             name: `Tenant ${i}`,
-            email: `tenant${i}_${Date.now()}@test.com`,
-            phone: `080${i}2345678`,
+            email: `tenant${i}@example.com`,
+            phone: `080000000${i}`,
             rentAmount: 1000,
-            rentStart: new Date().toISOString(),
-            rentEnd: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString(),
-            rentDuration: '1 month',
-            paymentFrequency: 'monthly',
+            rentStart: new Date(),
+            rentEnd: new Date(Date.now() + 31536000000), // + 1 year
+            rentDuration: "12 months",
+            paymentFrequency: "monthly",
             unitNumber: `Unit ${i}`,
-            isActive: true
-        }, token);
+            isActive: true,
+        }).save());
     }
-    console.log('   ✅ 4 tenants created.\n');
+    await Promise.all(tenantPromises);
+    console.log(`✅ Created 5 ACTIVE tenants! (Expected raw occupancy: 500%)`);
 
-    // 5. Check stats again
-    console.log('5️⃣  Checking stats after adding tenants...');
-    const updatedStats = await api('GET', '/properties/stats', undefined, token);
-    console.log(`   Stats: ${JSON.stringify(updatedStats)}`);
+    // 4. Test the metrics calculation
+    console.log("\n--- Testing dashboardUtils.ts ---");
+    const metrics = await calculateDashboardMetrics(landlord._id.toString());
     
-    const expectedRate = 40;
-    if (updatedStats.occupiedUnits === 4 && updatedStats.vacantUnits === 6 && updatedStats.occupancyRate === expectedRate) {
-        console.log('   ✅ Occupancy metrics verified!');
-        console.log(`      - Occupied : ${updatedStats.occupiedUnits}`);
-        console.log(`      - Vacant   : ${updatedStats.vacantUnits}`);
-        console.log(`      - Rate     : ${updatedStats.occupancyRate}%\n`);
+    console.log("Returned Metrics:");
+    console.log(`Total Units: ${metrics.totalUnits}`);
+    console.log(`Occupied Units (Active Tenants): ${metrics.occupiedUnits}`);
+    console.log(`Raw Occupancy Rate would be: (5 / 1) * 100 = 500%`);
+    console.log(`Capped Occupancy Rate: ${metrics.occupancyRate}%`);
+
+    if (metrics.occupancyRate === 100) {
+        console.log("\n✅ SUCCESS: The occupancy rate was correctly capped at 100%!");
     } else {
-        console.log('   ❌ Stats mismatch!');
-        console.log(`      Expected: occupied=4, vacant=6, rate=40`);
-        console.log(`      Actual:   occupied=${updatedStats.occupiedUnits}, vacant=${updatedStats.vacantUnits}, rate=${updatedStats.occupancyRate}\n`);
+        console.log(`\n❌ FAILURE: The occupancy rate was ${metrics.occupancyRate} instead of 100%.`);
     }
 
-    // 6. Check Dashboard endpoint as well
-    console.log('6️⃣  Checking Dashboard endpoint for same metrics...');
-    const dashboardData = await api('GET', '/dashboard', undefined, token);
-    if (dashboardData.occupancyRate === expectedRate && dashboardData.occupiedUnits === 4) {
-        console.log('   ✅ Dashboard occupancy metrics verified!\n');
-    } else {
-        console.log('   ❌ Dashboard metrics mismatch!\n');
-    }
-
-    console.log('🟢 ===== All Verification Tests Complete =====\n');
+    // 5. Cleanup
+    console.log("\nCleaning up test data...");
+    await Tenant.deleteMany({ landlordId: landlord._id });
+    await Property.deleteMany({ landlordId: landlord._id });
+    await User.deleteOne({ _id: landlord._id });
+    await mongoose.disconnect();
+    
+    console.log("Done.");
 }
 
-testOccupancy().catch((err) => {
-    console.error('\n💥 Verification script crashed:', err.data ?? err.message);
+runTest().catch(err => {
+    console.error("Test failed:", err);
     process.exit(1);
 });
