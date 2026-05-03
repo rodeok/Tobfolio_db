@@ -13,7 +13,9 @@ const getMaintenanceRecords = async (req, res) => {
         const maintenanceRecords = await Maintenance_js_1.default.find({ landlordId: actingLandlordId })
             .populate('propertyId', 'name')
             .sort({ date: -1 });
-        res.json(maintenanceRecords);
+        // Filter out records with null propertyId (orphaned references)
+        const validRecords = maintenanceRecords.filter(record => record.propertyId !== null);
+        res.json(validRecords);
     }
     catch (error) {
         res.status(500).json({ message: 'Error fetching maintenance records' });
@@ -59,6 +61,10 @@ const getMaintenanceRecord = async (req, res) => {
         const maintenance = await Maintenance_js_1.default.findOne({ _id: req.params.id, landlordId: actingLandlordId })
             .populate('propertyId', 'name');
         if (!maintenance) {
+            return res.status(404).json({ message: 'Maintenance record not found' });
+        }
+        // Return 404 if propertyId is null (orphaned reference)
+        if (!maintenance.propertyId) {
             return res.status(404).json({ message: 'Maintenance record not found' });
         }
         res.json(maintenance);
