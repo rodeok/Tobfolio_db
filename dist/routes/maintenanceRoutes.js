@@ -22,6 +22,12 @@ router.use(authMiddleware_js_1.authMiddleware);
  *     responses:
  *       200:
  *         description: List of maintenance records
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Maintenance'
  *       401:
  *         description: Unauthorized
  */
@@ -59,6 +65,10 @@ router.get('/', maintenanceController_js_1.getMaintenanceRecords);
  *     responses:
  *       201:
  *         description: Maintenance record created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Maintenance'
  *       401:
  *         description: Unauthorized
  */
@@ -80,6 +90,10 @@ router.post('/', maintenanceController_js_1.createMaintenanceRecord);
  *     responses:
  *       200:
  *         description: Maintenance record details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Maintenance'
  *       404:
  *         description: Maintenance record not found
  */
