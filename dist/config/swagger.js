@@ -63,6 +63,36 @@ const options = {
                         createdAt: { type: 'string', format: 'date-time' },
                     },
                 },
+                PropertySingleUnit: {
+                    type: 'object',
+                    required: ['name', 'type', 'address', 'managementType', 'unitType', 'unitNumber'],
+                    properties: {
+                        name: { type: 'string', example: 'Apartment A-101' },
+                        type: { type: 'string', example: 'Apartment' },
+                        address: { type: 'string', example: '123 Main St' },
+                        units: { type: 'integer', example: 1 },
+                        propertyImages: { type: 'array', items: { type: 'string' } },
+                        managementType: { type: 'string', enum: ['single_unit'], example: 'single_unit' },
+                        unitType: { type: 'string', enum: ['flat', 'room', 'villa', 'office'], example: 'flat' },
+                        unitNumber: { type: 'string', example: 'A-101' },
+                        unitDescription: { type: 'string', example: 'Corner unit with balcony' },
+                    },
+                },
+                PropertyEntireBuilding: {
+                    type: 'object',
+                    required: ['name', 'type', 'address', 'managementType', 'unitType', 'totalUnits'],
+                    properties: {
+                        name: { type: 'string', example: 'Sunrise Apartments' },
+                        type: { type: 'string', example: 'Apartment' },
+                        address: { type: 'string', example: '456 Building Ave' },
+                        units: { type: 'integer', example: 1 },
+                        propertyImages: { type: 'array', items: { type: 'string' } },
+                        managementType: { type: 'string', enum: ['entire_building'], example: 'entire_building' },
+                        unitType: { type: 'string', enum: ['flat', 'room', 'villa', 'office'], example: 'flat' },
+                        totalUnits: { type: 'integer', example: 50 },
+                        unitDescription: { type: 'string', example: 'Residential apartment complex' },
+                    },
+                },
                 Reward: {
                     type: 'object',
                     properties: {

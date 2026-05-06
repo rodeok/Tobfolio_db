@@ -73,45 +73,9 @@ router.get('/stats', propertyController_js_1.getRentalStats);
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - name
- *               - type
- *               - address
- *             properties:
- *               name:
- *                 type: string
- *               type:
- *                 type: string
- *               address:
- *                 type: string
- *               units:
- *                 type: number
- *               propertyImages:
- *                 type: array
- *                 items:
- *                   type: string
- *                   format: uri
- *               managementType:
- *                 type: string
- *                 enum: [single_unit, entire_building]
- *                 description: |
- *                   Select how you manage this property:
- *                   - single_unit: Manage as a single unit (requires unitNumber)
- *                   - entire_building: Manage as an entire building (requires totalUnits)
- *               unitType:
- *                 type: string
- *                 enum: [flat, room, villa, office]
- *                 description: Type of unit (flat, room, villa, or office)
- *               unitNumber:
- *                 type: string
- *                 description: Unit number (required for single_unit management)
- *               totalUnits:
- *                 type: number
- *                 description: Total number of units (required for entire_building management)
- *               unitDescription:
- *                 type: string
- *                 description: Optional description of the unit or building
+ *             oneOf:
+ *               - $ref: '#/components/schemas/PropertySingleUnit'
+ *               - $ref: '#/components/schemas/PropertyEntireBuilding'
  *     responses:
  *       201:
  *         description: Property created successfully
