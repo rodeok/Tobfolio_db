@@ -85,6 +85,17 @@ const propertySchema = new mongoose_1.Schema({
     },
     purchasePrice: Number,
     estimatedValue: Number,
+    managementType: {
+        type: String,
+        enum: ['single_unit', 'entire_building'],
+    },
+    unitType: {
+        type: String,
+        enum: ['flat', 'room', 'villa', 'office'],
+    },
+    unitNumber: String,
+    totalUnits: Number,
+    unitDescription: String,
     createdAt: {
         type: Date,
         default: Date.now,

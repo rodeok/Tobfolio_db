@@ -21,6 +21,11 @@ export interface IProperty extends Document {
     totalRenovationCost: number;
     purchasePrice?: number;
     estimatedValue?: number;
+    managementType?: 'single_unit' | 'entire_building';
+    unitType?: 'flat' | 'room' | 'villa' | 'office';
+    unitNumber?: string;
+    totalUnits?: number;
+    unitDescription?: string;
     createdAt: Date;
 }
 
@@ -76,6 +81,17 @@ const propertySchema = new Schema<IProperty>({
     },
     purchasePrice: Number,
     estimatedValue: Number,
+    managementType: {
+        type: String,
+        enum: ['single_unit', 'entire_building'],
+    },
+    unitType: {
+        type: String,
+        enum: ['flat', 'room', 'villa', 'office'],
+    },
+    unitNumber: String,
+    totalUnits: Number,
+    unitDescription: String,
     createdAt: {
         type: Date,
         default: Date.now,

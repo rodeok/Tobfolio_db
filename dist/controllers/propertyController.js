@@ -8,6 +8,7 @@ const Property_js_1 = __importDefault(require("../models/Property.js"));
 const Maintenance_js_1 = __importDefault(require("../models/Maintenance.js"));
 const validations_js_1 = require("../utils/validations.js");
 const dashboardUtils_js_1 = require("../utils/dashboardUtils.js");
+const zod_1 = require("zod");
 const getProperties = async (req, res) => {
     try {
         const actingLandlordId = req.user?.landlordId || req.user?.userId;
@@ -33,8 +34,11 @@ const createProperty = async (req, res) => {
         res.status(201).json(property);
     }
     catch (error) {
-        if (error.name === 'ZodError') {
-            return res.status(400).json({ message: error.errors[0].message });
+        if (error instanceof zod_1.ZodError || error.name === 'ZodError') {
+            return res.status(400).json({
+                message: error.errors[0].message,
+                errors: error.errors.map((e) => e.message)
+            });
         }
         res.status(500).json({ message: 'Error creating property' });
     }

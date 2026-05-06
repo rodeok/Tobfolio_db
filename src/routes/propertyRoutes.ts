@@ -90,6 +90,18 @@ router.get('/stats', getRentalStats);
  *                 items:
  *                   type: string
  *                   format: uri
+ *               managementType:
+ *                 type: string
+ *                 enum: [single_unit, entire_building]
+ *               unitType:
+ *                 type: string
+ *                 enum: [flat, room, villa, office]
+ *               unitNumber:
+ *                 type: string
+ *               totalUnits:
+ *                 type: number
+ *               unitDescription:
+ *                 type: string
  *     responses:
  *       201:
  *         description: Property created successfully

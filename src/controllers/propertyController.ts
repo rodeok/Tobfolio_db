@@ -5,6 +5,7 @@ import Maintenance from '../models/Maintenance.js';
 import { propertySchema } from '../utils/validations.js';
 import { Request } from 'express';
 import { calculateDashboardMetrics } from '../utils/dashboardUtils.js';
+import { ZodError } from 'zod';
 
 interface AuthRequest extends Request {
     user?: {
@@ -39,8 +40,11 @@ export const createProperty = async (req: AuthRequest, res: Response) => {
         });
         res.status(201).json(property);
     } catch (error: any) {
-        if (error.name === 'ZodError') {
-            return res.status(400).json({ message: error.errors[0].message });
+        if (error instanceof ZodError || error.name === 'ZodError') {
+            return res.status(400).json({ 
+                message: error.errors[0].message,
+                errors: error.errors.map((e: any) => e.message)
+            });
         }
         res.status(500).json({ message: 'Error creating property' });
     }

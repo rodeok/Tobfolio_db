@@ -26,6 +26,32 @@ export const propertySchema = z.object({
     estimatedValue: z.number().nonnegative('Value must be positive').optional(),
     description: z.string().max(1000, 'Description too long').optional(),
     propertyImages: z.array(z.string().url()).optional(),
+    managementType: z.enum(['single_unit', 'entire_building']).optional(),
+    unitType: z.enum(['flat', 'room', 'villa', 'office']).optional(),
+    unitNumber: z.string().optional(),
+    totalUnits: z.number().int().positive().optional(),
+    unitDescription: z.string().max(500, 'Unit description too long').optional(),
+}).refine((data) => {
+    // If managementType is provided, unitType must also be provided
+    if (data.managementType && !data.unitType) {
+        return false;
+    }
+    // If managementType is single_unit, unitNumber is required
+    if (data.managementType === 'single_unit' && !data.unitNumber) {
+        return false;
+    }
+    // If managementType is entire_building, totalUnits is required
+    if (data.managementType === 'entire_building' && !data.totalUnits) {
+        return false;
+    }
+    // If unitType is provided, managementType should also be provided
+    if (data.unitType && !data.managementType) {
+        return false;
+    }
+    return true;
+}, {
+    message: 'Invalid unit management configuration',
+    path: ['managementType'],
 });
 
 export const maintenanceSchema = z.object({
