@@ -22,6 +22,12 @@ router.use(authMiddleware_js_1.authMiddleware);
  *     responses:
  *       200:
  *         description: List of properties
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Property'
  *       401:
  *         description: Unauthorized
  */
@@ -89,18 +95,30 @@ router.get('/stats', propertyController_js_1.getRentalStats);
  *               managementType:
  *                 type: string
  *                 enum: [single_unit, entire_building]
+ *                 description: |
+ *                   Select how you manage this property:
+ *                   - single_unit: Manage as a single unit (requires unitNumber)
+ *                   - entire_building: Manage as an entire building (requires totalUnits)
  *               unitType:
  *                 type: string
  *                 enum: [flat, room, villa, office]
+ *                 description: Type of unit (flat, room, villa, or office)
  *               unitNumber:
  *                 type: string
+ *                 description: Unit number (required for single_unit management)
  *               totalUnits:
  *                 type: number
+ *                 description: Total number of units (required for entire_building management)
  *               unitDescription:
  *                 type: string
+ *                 description: Optional description of the unit or building
  *     responses:
  *       201:
  *         description: Property created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Property'
  *       401:
  *         description: Unauthorized
  */
@@ -122,6 +140,10 @@ router.post('/', propertyController_js_1.createProperty);
  *     responses:
  *       200:
  *         description: Property details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Property'
  *       404:
  *         description: Property not found
  */
