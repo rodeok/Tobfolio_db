@@ -110,11 +110,6 @@ router.post('/', propertyController_js_1.createProperty);
  *               $ref: '#/components/schemas/Property'
  *       404:
  *         description: Property not found
- */
-router.get('/:id', propertyController_js_1.getProperty);
-/**
- * @swagger
- * /api/v1/properties/{id}:
  *   delete:
  *     summary: Delete a property
  *     tags: [Properties]
@@ -129,10 +124,21 @@ router.get('/:id', propertyController_js_1.getProperty);
  *     responses:
  *       200:
  *         description: Property deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Property deleted successfully
  *       401:
  *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - You do not have permission to delete this property
  *       404:
  *         description: Property not found
  */
+router.get('/:id', propertyController_js_1.getProperty);
 router.delete('/:id', propertyController_js_1.deleteProperty);
 exports.default = router;
