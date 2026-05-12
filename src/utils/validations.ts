@@ -32,6 +32,28 @@ export const propertySchema = z.object({
     totalUnits: z.number().int().positive().optional(),
     unitDescription: z.string().max(500, 'Unit description too long').optional(),
 }).refine((data) => {
+    if (data.managementType && !data.unitType) return false;
+    if (data.managementType === 'single_unit' && !data.unitNumber) return false;
+    if (data.managementType === 'entire_building' && !data.totalUnits) return false;
+    if (data.unitType && !data.managementType) return false;
+    return true;
+}, { message: 'Invalid unit management configuration', path: ['managementType'] });
+
+export const propertyUpdateSchema = z.object({
+    name: z.string().min(3, 'Name is required (min 3 chars)').optional(),
+    address: z.string().min(5, 'Address is required (min 5 chars)').optional(),
+    type: z.string().min(1, 'Property type is required').optional(),
+    size: z.string().optional(),
+    units: z.number().int().positive().optional(),
+    estimatedValue: z.number().nonnegative('Value must be positive').optional(),
+    description: z.string().max(1000, 'Description too long').optional(),
+    propertyImages: z.array(z.string().url()).optional(),
+    managementType: z.enum(['single_unit', 'entire_building']).optional(),
+    unitType: z.enum(['flat', 'room', 'villa', 'office']).optional(),
+    unitNumber: z.string().optional(),
+    totalUnits: z.number().int().positive().optional(),
+    unitDescription: z.string().max(500, 'Unit description too long').optional(),
+}).refine((data) => {
     // If managementType is provided, unitType must also be provided
     if (data.managementType && !data.unitType) {
         return false;

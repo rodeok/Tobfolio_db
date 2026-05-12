@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getProperties, createProperty, getProperty, deleteProperty, getRentalStats } from '../controllers/propertyController.js';
+import { getProperties, createProperty, getProperty, updateProperty, deleteProperty, getRentalStats } from '../controllers/propertyController.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 
 const router = Router();
@@ -92,59 +92,92 @@ router.get('/stats', getRentalStats);
  */
 router.post('/', createProperty);
 
-/**
- * @swagger
- * /api/v1/properties/{id}:
- *   get:
- *     summary: Get property by ID
- *     tags: [Properties]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Property details
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Property'
- *       404:
- *         description: Property not found
- *   delete:
- *     summary: Delete a property
- *     tags: [Properties]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Property deleted successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Property deleted successfully
- *       401:
- *         description: Unauthorized
- *       403:
- *         description: Forbidden - You do not have permission to delete this property
- *       404:
- *         description: Property not found
- */
+  /**
+   * @swagger
+   * /api/v1/properties/{id}:
+   *   get:
+   *     summary: Get property by ID
+   *     tags: [Properties]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: Property details
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Property'
+   *       404:
+   *         description: Property not found
+   *   put:
+   *     summary: Update a property
+   *     tags: [Properties]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             oneOf:
+   *               - $ref: '#/components/schemas/PropertySingleUnit'
+   *               - $ref: '#/components/schemas/PropertyEntireBuilding'
+   *     responses:
+   *       200:
+   *         description: Property updated successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Property'
+   *       401:
+   *         description: Unauthorized
+   *       403:
+   *         description: Forbidden - You do not have permission to update this property
+   *       404:
+   *         description: Property not found
+   *   delete:
+   *     summary: Delete a property
+   *     tags: [Properties]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: Property deleted successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: Property deleted successfully
+   *       401:
+   *         description: Unauthorized
+   *       403:
+   *         description: Forbidden - You do not have permission to delete this property
+   *       404:
+   *         description: Property not found
+   */
 router.get('/:id', getProperty);
+router.put('/:id', updateProperty);
 router.delete('/:id', deleteProperty);
 
 export default router;

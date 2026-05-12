@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.tenantSchema = exports.maintenanceSchema = exports.propertySchema = exports.loginSchema = exports.signupSchema = void 0;
+exports.tenantSchema = exports.maintenanceSchema = exports.propertyUpdateSchema = exports.propertySchema = exports.loginSchema = exports.signupSchema = void 0;
 const zod_1 = require("zod");
 // Helper for MongoDB ObjectId validation
 const objectIdSchema = zod_1.z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid ID format');
@@ -20,6 +20,31 @@ exports.propertySchema = zod_1.z.object({
     name: zod_1.z.string().min(3, 'Name is required (min 3 chars)'),
     address: zod_1.z.string().min(5, 'Address is required (min 5 chars)'),
     type: zod_1.z.string().min(1, 'Property type is required'),
+    size: zod_1.z.string().optional(),
+    units: zod_1.z.number().int().positive().optional(),
+    estimatedValue: zod_1.z.number().nonnegative('Value must be positive').optional(),
+    description: zod_1.z.string().max(1000, 'Description too long').optional(),
+    propertyImages: zod_1.z.array(zod_1.z.string().url()).optional(),
+    managementType: zod_1.z.enum(['single_unit', 'entire_building']).optional(),
+    unitType: zod_1.z.enum(['flat', 'room', 'villa', 'office']).optional(),
+    unitNumber: zod_1.z.string().optional(),
+    totalUnits: zod_1.z.number().int().positive().optional(),
+    unitDescription: zod_1.z.string().max(500, 'Unit description too long').optional(),
+}).refine((data) => {
+    if (data.managementType && !data.unitType)
+        return false;
+    if (data.managementType === 'single_unit' && !data.unitNumber)
+        return false;
+    if (data.managementType === 'entire_building' && !data.totalUnits)
+        return false;
+    if (data.unitType && !data.managementType)
+        return false;
+    return true;
+}, { message: 'Invalid unit management configuration', path: ['managementType'] });
+exports.propertyUpdateSchema = zod_1.z.object({
+    name: zod_1.z.string().min(3, 'Name is required (min 3 chars)').optional(),
+    address: zod_1.z.string().min(5, 'Address is required (min 5 chars)').optional(),
+    type: zod_1.z.string().min(1, 'Property type is required').optional(),
     size: zod_1.z.string().optional(),
     units: zod_1.z.number().int().positive().optional(),
     estimatedValue: zod_1.z.number().nonnegative('Value must be positive').optional(),

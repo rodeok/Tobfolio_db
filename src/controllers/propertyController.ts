@@ -2,7 +2,7 @@ import { Response } from 'express';
 import Property from '../models/Property.js';
 import User from '../models/User.js';
 import Maintenance from '../models/Maintenance.js';
-import { propertySchema } from '../utils/validations.js';
+import { propertySchema, propertyUpdateSchema } from '../utils/validations.js';
 import { Request } from 'express';
 import { calculateDashboardMetrics } from '../utils/dashboardUtils.js';
 import { ZodError } from 'zod';
@@ -84,6 +84,38 @@ export const deleteProperty = async (req: AuthRequest, res: Response) => {
         res.json({ message: 'Property deleted successfully' });
     } catch (error) {
         res.status(500).json({ message: 'Error deleting property' });
+    }
+};
+
+export const updateProperty = async (req: AuthRequest, res: Response) => {
+    try {
+        if (req.user?.role !== 'LANDLORD' && !req.user?.adminPrivilege) {
+            return res.status(403).json({ message: 'You do not have permission to update properties' });
+        }
+
+        const actingLandlordId = req.user?.landlordId || req.user?.userId;
+        const validatedData = propertyUpdateSchema.parse(req.body);
+
+        const property = await Property.findOneAndUpdate(
+            { _id: req.params.id, landlordId: actingLandlordId },
+            { $set: validatedData },
+            { new: true, runValidators: true }
+        );
+
+        if (!property) {
+            return res.status(404).json({ message: 'Property not found or unauthorized' });
+        }
+
+        res.json(property);
+    } catch (error: any) {
+        if (error instanceof ZodError || error.name === 'ZodError') {
+            return res.status(400).json({ 
+                message: error.errors[0].message,
+                errors: error.errors.map((e: any) => e.message)
+            });
+        }
+        console.error('Error updating property:', error);
+        res.status(500).json({ message: 'Error updating property' });
     }
 };
 

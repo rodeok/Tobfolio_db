@@ -110,6 +110,38 @@ router.post('/', propertyController_js_1.createProperty);
  *               $ref: '#/components/schemas/Property'
  *       404:
  *         description: Property not found
+ *   put:
+ *     summary: Update a property
+ *     tags: [Properties]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             oneOf:
+ *               - $ref: '#/components/schemas/PropertySingleUnit'
+ *               - $ref: '#/components/schemas/PropertyEntireBuilding'
+ *     responses:
+ *       200:
+ *         description: Property updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Property'
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - You do not have permission to update this property
+ *       404:
+ *         description: Property not found
  *   delete:
  *     summary: Delete a property
  *     tags: [Properties]
@@ -140,5 +172,6 @@ router.post('/', propertyController_js_1.createProperty);
  *         description: Property not found
  */
 router.get('/:id', propertyController_js_1.getProperty);
+router.put('/:id', propertyController_js_1.updateProperty);
 router.delete('/:id', propertyController_js_1.deleteProperty);
 exports.default = router;

@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getRentalStats = exports.deleteProperty = exports.getProperty = exports.createProperty = exports.getProperties = void 0;
+exports.getRentalStats = exports.updateProperty = exports.deleteProperty = exports.getProperty = exports.createProperty = exports.getProperties = void 0;
 const Property_js_1 = __importDefault(require("../models/Property.js"));
 const Maintenance_js_1 = __importDefault(require("../models/Maintenance.js"));
 const validations_js_1 = require("../utils/validations.js");
@@ -79,6 +79,31 @@ const deleteProperty = async (req, res) => {
     }
 };
 exports.deleteProperty = deleteProperty;
+const updateProperty = async (req, res) => {
+    try {
+        if (req.user?.role !== 'LANDLORD' && !req.user?.adminPrivilege) {
+            return res.status(403).json({ message: 'You do not have permission to update properties' });
+        }
+        const actingLandlordId = req.user?.landlordId || req.user?.userId;
+        const validatedData = validations_js_1.propertyUpdateSchema.parse(req.body);
+        const property = await Property_js_1.default.findOneAndUpdate({ _id: req.params.id, landlordId: actingLandlordId }, { $set: validatedData }, { new: true, runValidators: true });
+        if (!property) {
+            return res.status(404).json({ message: 'Property not found or unauthorized' });
+        }
+        res.json(property);
+    }
+    catch (error) {
+        if (error instanceof zod_1.ZodError || error.name === 'ZodError') {
+            return res.status(400).json({
+                message: error.errors[0].message,
+                errors: error.errors.map((e) => e.message)
+            });
+        }
+        console.error('Error updating property:', error);
+        res.status(500).json({ message: 'Error updating property' });
+    }
+};
+exports.updateProperty = updateProperty;
 const getRentalStats = async (req, res) => {
     try {
         const actingLandlordId = req.user?.landlordId || req.user?.userId;
