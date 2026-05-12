@@ -112,6 +112,7 @@ router.post('/', propertyController_js_1.createProperty);
  *         description: Property not found
  *   put:
  *     summary: Update a property
+ *     description: All fields are optional. Only send the fields you want to update, including unit fields (unitType, unitNumber, totalUnits, unitDescription, managementType).
  *     tags: [Properties]
  *     security:
  *       - bearerAuth: []
@@ -126,9 +127,7 @@ router.post('/', propertyController_js_1.createProperty);
  *       content:
  *         application/json:
  *           schema:
- *             oneOf:
- *               - $ref: '#/components/schemas/PropertySingleUnit'
- *               - $ref: '#/components/schemas/PropertyEntireBuilding'
+ *             $ref: '#/components/schemas/PropertyUpdate'
  *     responses:
  *       200:
  *         description: Property updated successfully
@@ -136,6 +135,8 @@ router.post('/', propertyController_js_1.createProperty);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Property'
+ *       400:
+ *         description: Validation error
  *       401:
  *         description: Unauthorized
  *       403:
