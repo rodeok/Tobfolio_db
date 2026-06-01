@@ -38,6 +38,27 @@ export const createProperty = async (req: AuthRequest, res: Response) => {
             ...validatedData,
             landlordId: actingLandlordId,
         });
+
+        if (property.managementType === 'entire_building' && property.totalUnits && property.totalUnits > 0) {
+            const unitPromises = [];
+            for (let i = 1; i <= property.totalUnits; i++) {
+                unitPromises.push(
+                    Property.create({
+                        landlordId: actingLandlordId,
+                        parentPropertyId: property._id,
+                        name: `${property.name}_room${i}`,
+                        address: property.address,
+                        type: property.type,
+                        managementType: 'single_unit',
+                        unitType: property.unitType,
+                        unitNumber: `Room ${i}`,
+                        propertyImages: property.propertyImages,
+                    })
+                );
+            }
+            await Promise.all(unitPromises);
+        }
+
         res.status(201).json(property);
     } catch (error: any) {
         if (error instanceof ZodError || error.name === 'ZodError') {

@@ -96,6 +96,10 @@ const propertySchema = new mongoose_1.Schema({
     unitNumber: String,
     totalUnits: Number,
     unitDescription: String,
+    parentPropertyId: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: 'Property',
+    },
     createdAt: {
         type: Date,
         default: Date.now,

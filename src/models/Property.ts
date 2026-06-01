@@ -26,6 +26,7 @@ export interface IProperty extends Document {
     unitNumber?: string;
     totalUnits?: number;
     unitDescription?: string;
+    parentPropertyId?: mongoose.Types.ObjectId;
     createdAt: Date;
 }
 
@@ -92,6 +93,10 @@ const propertySchema = new Schema<IProperty>({
     unitNumber: String,
     totalUnits: Number,
     unitDescription: String,
+    parentPropertyId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Property',
+    },
     createdAt: {
         type: Date,
         default: Date.now,

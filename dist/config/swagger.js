@@ -60,6 +60,7 @@ const options = {
                         unitNumber: { type: 'string' },
                         totalUnits: { type: 'integer' },
                         unitDescription: { type: 'string' },
+                        parentPropertyId: { type: 'string' },
                         createdAt: { type: 'string', format: 'date-time' },
                     },
                 },
@@ -80,6 +81,7 @@ const options = {
                         unitNumber: { type: 'string', example: 'A-101' },
                         totalUnits: { type: 'integer', example: 10 },
                         unitDescription: { type: 'string', example: 'Corner unit with balcony' },
+                        parentPropertyId: { type: 'string', example: '60d0fe4f5311236168a109ca' },
                     },
                 },
                 PropertySingleUnit: {
@@ -95,6 +97,7 @@ const options = {
                         unitType: { type: 'string', enum: ['flat', 'room', 'villa', 'office'], example: 'flat' },
                         unitNumber: { type: 'string', example: 'A-101' },
                         unitDescription: { type: 'string', example: 'Corner unit with balcony' },
+                        parentPropertyId: { type: 'string', example: '60d0fe4f5311236168a109ca' },
                     },
                 },
                 PropertyEntireBuilding: {
